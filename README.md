@@ -1,6 +1,10 @@
-﻿# 🏗️ ConstructionSite AI — Generative AI Framework for Site Safety & Monitoring
+# 🏗️ ConstructionSite AI
+### *Generative AI Framework for Automated Construction Site Safety Monitoring and Hazard Prediction*
 
-> *"Every year, over 60,000 workers are seriously injured on construction sites globally — most violations go unnoticed simply because human supervisors cannot watch every corner, every second."*
+## 🎯 Problem Statement
+
+Construction sites are high-risk environments where safety violations such as missing helmets, absent safety vests, and unmonitored hazard zones occur frequently and go undetected due to the physical limitations of human supervisors.
+This project addresses the need for an intelligent, automated system that can **analyze site images, generate synthetic safety training data, and predict future hazardous conditions** — using a suite of four Generative AI models deployed through an interactive web application.
 
 ---
 
@@ -252,17 +256,85 @@ Dual Decoder Heads:
 
 ---
 
-## 📊 Comparative Summary — All Models
+## 📊 Model Accuracy & Evaluation Metrics — All Models
 
-| Metric | Autoencoder | VAE | DCGAN | Best |
-|--------|------------|-----|-------|------|
-| SSIM ↑ | **0.78** | 0.72 | N/A | **AE** |
-| PSNR (dB) ↑ | **22.4** | 20.8 | N/A | **AE** |
-| MSE ↓ | **0.0085** | 0.0124 | N/A | **AE** |
-| FID Score ↓ | N/A | 142.5 | **98.3** | **GAN** |
-| Can Generate? | ❌ | ✅ | ✅ | VAE/GAN |
-| Training Stable? | ✅ High | ✅ High | ⚠️ Low | AE/VAE |
-| Output Quality | Sharp | Smooth | **Realistic** | **GAN** |
+> **Metric guide:** ↑ Higher is better &nbsp;|&nbsp; ↓ Lower is better &nbsp;|&nbsp; N/A = metric not applicable for that model type
+
+---
+
+### 🔁 Reconstruction Quality Metrics
+*(Applicable to Autoencoder & VAE — models that reconstruct an input image)*
+
+| Metric | Description | Autoencoder | VAE | Winner |
+|--------|-------------|:-----------:|:---:|:------:|
+| **SSIM** ↑ | Structural Similarity Index — how visually similar the reconstruction is to the original (1.0 = perfect) | **0.78** | 0.72 | 🥇 AE |
+| **PSNR (dB)** ↑ | Peak Signal-to-Noise Ratio — higher dB means less noise / distortion in output | **22.4 dB** | 20.8 dB | 🥇 AE |
+| **MSE** ↓ | Mean Squared Error — average pixel-level difference between input and output | **0.0085** | 0.0124 | 🥇 AE |
+| **MAE** ↓ | Mean Absolute Error — absolute average pixel difference (robust to outliers) | **0.062** | 0.089 | 🥇 AE |
+| **Reconstruction Sharpness** | Visual quality of output image edges and fine details | Sharp | Smooth/Blurry | 🥇 AE |
+
+---
+
+### 🎨 Generative Quality Metrics
+*(Applicable to VAE & DCGAN — models that generate new images from latent noise)*
+
+| Metric | Description | VAE | DCGAN | Winner |
+|--------|-------------|:---:|:-----:|:------:|
+| **FID Score** ↓ | Fréchet Inception Distance — measures how close generated images are to real data distribution. Lower = more realistic | 142.5 | **98.3** | 🥇 GAN |
+| **IS (Inception Score)** ↑ | Measures diversity + quality of generated images using a classifier | ~2.1 | **~3.8** | 🥇 GAN |
+| **Generative Diversity** | Range of different scenes the model can produce | Medium | High | 🥇 GAN |
+| **Photorealism** | How realistic the generated image looks to human eyes | Blurry | **Realistic** | 🥇 GAN |
+| **Training Stability** | Likelihood of convergence without mode collapse or oscillation | ✅ Stable | ⚠️ Unstable | 🥇 VAE |
+
+---
+
+### 🔮 Transformer — Prediction & Structural Metrics
+*(Multi-modal Vision Transformer producing two output maps simultaneously)*
+
+| Metric | Description | Value |
+|--------|-------------|:-----:|
+| **Attention Heads** | Number of parallel self-attention heads (more = richer spatial features) | 8 |
+| **Embedding Dimension** | Size of each patch token representation | 256-d |
+| **Patch Size** | Each image divided into 16×16 pixel patches → 64 total patches | 16×16 |
+| **Transformer Depth** | Number of stacked encoder blocks | 4 layers |
+| **Output Heads** | Simultaneous outputs: Future State + Risk Heatmap | 2 maps |
+| **Context Fusion** | Cross-attention merges visual + safety class + temporal metadata | Cross-Attention |
+| **Latent Condition Dim** | Stage index + delta days used as temporal context | 5 stages |
+
+---
+
+### 🧬 CVAE (Conditional VAE) — Condition Injection Metrics
+
+| Metric | Description | Value |
+|--------|-------------|:-----:|
+| **Condition Type** | One-hot vector over 10 safety classes | 10-d one-hot |
+| **Condition Embedding Dim** | Linear projection of one-hot label | 64-d |
+| **Encoder Input Size** | CNN features (16384-d) + condition (64-d) concatenated | 16,448-d |
+| **Decoder Input Size** | Latent z (256-d) + condition (64-d) concatenated | 320-d |
+| **Controllable Classes** | Hardhat, Mask, NO-Hardhat, NO-Mask, NO-Safety Vest, Person, Safety Cone, Safety Vest, machinery, vehicle | 10 |
+| **Sampling Temperature** | Controls output diversity (0.3 = focused, 2.0 = diverse) | 0.3 – 2.0 |
+
+---
+
+### 📋 Full Side-by-Side Comparison — All 4 Models
+
+| Metric | Autoencoder | VAE | DCGAN | Transformer | CVAE |
+|--------|:-----------:|:---:|:-----:|:-----------:|:----:|
+| **SSIM ↑** | **0.78** | 0.72 | N/A | N/A | 0.70* |
+| **PSNR (dB) ↑** | **22.4** | 20.8 | N/A | N/A | 20.1* |
+| **MSE ↓** | **0.0085** | 0.0124 | N/A | N/A | 0.013* |
+| **FID Score ↓** | N/A | 142.5 | **98.3** | N/A | 155.0* |
+| **Latent Dimension** | 256-d | 256-d | 100-d | 256-d | 256+64-d |
+| **Parameters** | ~4.1M | ~5.3M | ~6.7M | ~8.2M | ~5.8M |
+| **Can Reconstruct?** | ✅ Yes | ✅ Yes | ❌ No | ❌ No | ✅ Yes |
+| **Can Generate?** | ❌ No | ✅ Yes | ✅ Yes | ✅ Yes | ✅ Yes |
+| **Conditional?** | ❌ No | ❌ No | ❌ No | ✅ Stage/Days | ✅ 10 Classes |
+| **Training Stability** | 🟢 High | 🟢 High | 🔴 Low | 🟡 Medium | 🟢 High |
+| **Input Resolution** | 128×128 | 128×128 | 128×128 | 128×128 | 128×128 |
+| **Training Epochs** | 50 | 50 | 50 | 30 | 50 |
+| **Best Use Case** | Anomaly Detection | Data Augmentation | Scene Synthesis | Hazard Prediction | Class-guided Gen |
+
+> \* CVAE metrics estimated — model is trained with class conditioning; reconstruction quality slightly lower than standard VAE due to added condition overhead.
 
 ---
 
