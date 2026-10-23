@@ -1,4 +1,4 @@
-﻿import { motion } from 'framer-motion';
+import { motion } from 'framer-motion';
 import { Link } from 'react-router-dom';
 import {
   Activity, ShieldAlert, BarChart3, Maximize2, Info,
@@ -230,16 +230,16 @@ export default function Dashboard() {
         </div>
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-5">
           <ModelCard
-            name="Autoencoder"
+            name="Autoencoder & Classification"
             icon={Box}
-            badge="PRACT 2"
-            description="4-layer CNN for dimensionality reduction and image reconstruction. Learns compressed latent representations of construction site scenes."
+            badge="86.8% Accuracy"
+            description="AutoencoderV2 with U-Net skip connections & supervised classification head. Classifies construction images across 10 safety & PPE compliance categories."
             path="/autoencoder"
             color="#0891b2"
             metrics={[
-              { label: 'SSIM',   value: '0.78'   },
-              { label: 'PSNR',   value: '22.4dB' },
-              { label: 'Latent', value: '256-d'  },
+              { label: 'Accuracy', value: '86.8%' },
+              { label: 'Classes',  value: '10 PPE' },
+              { label: 'Val MSE',  value: '0.0001' },
             ]}
           />
           <ModelCard

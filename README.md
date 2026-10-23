@@ -33,18 +33,46 @@ The system runs as a full-stack web application — React frontend + FastAPI bac
 
 ```
 ConstructionSite_AI/
-├── backend/              # FastAPI server + inference endpoints
-│   ├── main.py           # Server entrypoint
-│   ├── inference.py      # Model loading & prediction logic
-│   └── models/           # PyTorch model class definitions
-├── gui/                  # React + Vite + TailwindCSS frontend
-│   └── src/pages/        # Dashboard, AutoencoderView, VaeView, GanView, TransformerView...
-├── notebooks/            # Jupyter notebooks for training all 4 models
-├── weights/              # Trained model .pkl / .pth files
-├── data/
-│   └── processed/features/  # EDA charts (class_distribution, bbox_density, etc.)
+├── backend/                  # FastAPI server + inference endpoints
+│   ├── main.py               # REST API endpoints (/api/ae/classify, /reconstruct, /sample_test...)
+│   ├── inference.py          # Model inference manager & evaluation engine
+│   └── test_inference.py     # Endpoint validation test suite
+├── gui/                      # React + Vite frontend
+│   └── src/pages/            # Dashboard, AutoencoderView, VaeView, GanView, TransformerView...
+├── notebooks/                # Structured training pipeline (Colab & Local compatible)
+│   ├── 01_EDA.ipynb                          # Exploratory Data Analysis
+│   ├── 02_Autoencoder.ipynb                  # AutoencoderV2 (U-Net with skip connections)
+│   ├── 02A_Classification.ipynb              # Supervised fine-tuning across 10 safety classes
+│   ├── 03_VAE.ipynb                          # Variational Autoencoder & CVAE
+│   ├── 04_GAN.ipynb                          # Generative Adversarial Network (DCGAN)
+│   └── 05_Transformer_Architecture.ipynb     # Vision Transformer & Progress Simulator
+├── src/                      # Modular PyTorch models & utilities
+│   ├── models/               # AutoencoderV2, EncoderClassifier, ConvVAE, CVAE, GAN, Transformer
+│   └── utils/                # Metrics & helpers
+├── weights/                  # Trained checkpoints & weight exports
+│   ├── autoencoder_v2_best.pth               # Trained AutoencoderV2 weights (val MSE 0.000103)
+│   ├── clf_model_best.pth                    # Trained Classification Head weights (86.8% Acc)
+│   ├── ae_weights.pkl                        # Legacy Autoencoder weights
+│   ├── vae_weights.pkl                       # VAE checkpoint
+│   ├── gan_weights.pkl                       # DCGAN generator
+│   └── transformer_weights.pkl               # Transformer simulator
+├── runs/                     # Checkpoints, training logs & validation metrics
 └── requirements.txt
 ```
+
+---
+
+## 🚀 Training Roadmap & Collaborative Workflow
+
+Our team has split the training responsibilities across GitHub:
+
+| Stage | Model / Component | Notebook | Assigned | Status |
+|-------|-------------------|----------|----------|--------|
+| **Stage 1** | **Autoencoder V2** (U-Net Skips) | `02_Autoencoder.ipynb` | You | ✅ Trained (`autoencoder_v2_best.pth`, MSE: 0.0001) |
+| **Stage 2** | **Safety Classification Head** | `02A_Classification.ipynb` | You | ✅ Trained (`clf_model_best.pth`, 86.8% Acc) |
+| **Stage 3** | **Variational Autoencoder (VAE/CVAE)** | `03_VAE.ipynb` | Group Member 1 | 🔄 Ready for training |
+| **Stage 4** | **DCGAN Scene Synthesis** | `04_GAN.ipynb` | Group Member 2 | 🔄 Ready for training |
+| **Stage 5** | **Vision Transformer & Diffusion** | `05_Transformer_Architecture.ipynb` | Group Member 3 | 🔄 Ready for training |
 
 ---
 

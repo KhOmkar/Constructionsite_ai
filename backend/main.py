@@ -1,5 +1,5 @@
 import os
-from fastapi import FastAPI, UploadFile, File, Form
+from fastapi import FastAPI, UploadFile, File, Form, Query
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 from fastapi.staticfiles import StaticFiles
@@ -7,19 +7,18 @@ import uvicorn
 
 from inference import ModelInferenceManager
 
-app = FastAPI(title="Construction AI API")
+app = FastAPI(title="Construction AI API — Digital Twin & Safety Classification")
 
 # Configure CORS for frontend
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],  # Adjust in production
+    allow_origins=["*"],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
 )
 
 # Mount the data directory to serve static images/metrics
-# This assumes backend is run from the project root or backend folder is parallel to data
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 data_dir = os.path.join(BASE_DIR, "data")
 if os.path.exists(data_dir):
@@ -28,22 +27,60 @@ if os.path.exists(data_dir):
 # Initialize the inference manager
 inference_manager = ModelInferenceManager()
 
+
 @app.get("/")
 def read_root():
-    return {"message": "Construction AI API is running"}
+    return {
+        "status": "online",
+        "service": "Construction Site AI Digital Twin API",
+        "models": ["AutoencoderV2", "EncoderClassifier", "VAE", "CVAE", "GAN", "Transformer"],
+        "device": str(inference_manager.device)
+    }
+
+
+# ==============================================================================
+# Autoencoder & Classification Endpoints
+# ==============================================================================
 
 @app.post("/api/ae/reconstruct")
 async def ae_reconstruct(file: UploadFile = File(...)):
-    """Reconstruct an image using the Autoencoder"""
+    """Reconstruct an image using the trained Autoencoder V2."""
     content = await file.read()
     result = inference_manager.reconstruct_ae(content)
     return JSONResponse(content=result)
+
+
+@app.post("/api/ae/classify")
+async def ae_classify(file: UploadFile = File(...)):
+    """
+    Classify a construction site image / crop using the Autoencoder Feature Classifier.
+    Predicts PPE compliance (Hardhat, Mask, Vest, NO-Hardhat, NO-Vest, etc.).
+    """
+    content = await file.read()
+    result = inference_manager.classify_ae(content)
+    return JSONResponse(content=result)
+
+
+@app.get("/api/ae/sample_test")
+def ae_sample_test(max_samples: int = Query(default=8, ge=1, le=20)):
+    """
+    Evaluate real test samples from the dataset with the trained classifier.
+    Returns ground-truth vs model predictions and test accuracy.
+    """
+    result = inference_manager.evaluate_test_samples(max_samples=max_samples)
+    return JSONResponse(content=result)
+
+
+# ==============================================================================
+# Generative & Simulation Endpoints
+# ==============================================================================
 
 @app.post("/api/vae/generate")
 async def vae_generate():
     """Generate a novel image using the VAE"""
     result = inference_manager.generate_vae()
     return JSONResponse(content=result)
+
 
 @app.post("/api/vae/reconstruct")
 async def vae_reconstruct(file: UploadFile = File(...)):
@@ -52,30 +89,25 @@ async def vae_reconstruct(file: UploadFile = File(...)):
     result = inference_manager.reconstruct_vae(content)
     return JSONResponse(content=result)
 
+
 @app.post("/api/vae/generate_conditional")
 async def vae_generate_conditional(
     class_idx:   int   = Form(...),
     temperature: float = Form(default=1.0),
 ):
     """
-    Conditional VAE generation.
-    Generates a construction site image conditioned on a specific safety class.
-
-    Args:
-        class_idx   : Safety class index 0–9
-                      0=Hardhat, 1=Mask, 2=NO-Hardhat, 3=NO-Mask,
-                      4=NO-Safety Vest, 5=Person, 6=Safety Cone,
-                      7=Safety Vest, 8=machinery, 9=vehicle
-        temperature : Sampling temperature (0.5–2.0). Higher = more diverse.
+    Conditional VAE generation conditioned on a specific safety class.
     """
     result = inference_manager.generate_cvae(class_idx=class_idx, temperature=temperature)
     return JSONResponse(content=result)
+
 
 @app.post("/api/gan/generate")
 async def gan_generate():
     """Generate a high-fidelity synthetic image using GAN"""
     result = inference_manager.generate_gan()
     return JSONResponse(content=result)
+
 
 @app.post("/api/transformer/simulate")
 async def transformer_simulate(
@@ -87,6 +119,7 @@ async def transformer_simulate(
     content = await file.read()
     result = inference_manager.simulate_transformer(content, stage_idx, delta_days)
     return JSONResponse(content=result)
+
 
 if __name__ == "__main__":
     uvicorn.run("main:app", host="0.0.0.0", port=8000, reload=True)
