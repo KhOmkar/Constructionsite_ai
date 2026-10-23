@@ -6,7 +6,8 @@ import {
   Activity, ShieldAlert, BarChart3, Maximize2, Info,
   Box, Sparkles, Image as ImageIcon, Layers, ArrowRight,
   BookOpen, Scale, TrendingUp, Database, Cpu, Play,
-  CheckCircle2, AlertTriangle, Zap, RefreshCw, Eye
+  CheckCircle2, AlertTriangle, Zap, RefreshCw, Eye, Rocket,
+  ShieldCheck, MessageSquareCode
 } from 'lucide-react';
 import SampleImageSelector from '../components/SampleImageSelector';
 
@@ -22,64 +23,74 @@ const itemVariants = {
 
 const API = 'http://localhost:8000';
 
-/* -- Stat Card --------------------------------------------------------- */
-const StatCard = ({ title, value, icon: Icon, trend, accentColor = '#003153' }) => (
-  <motion.div variants={itemVariants}
-    className="bg-white border border-slate-200 rounded-2xl p-5 relative overflow-hidden
-               shadow-sm hover:shadow-md hover:border-primary/30 transition-all duration-300 group">
-    <div className="absolute top-0 right-0 w-24 h-24 rounded-full -mr-8 -mt-8 blur-2xl opacity-60
-                    group-hover:opacity-100 transition-opacity"
-      style={{ background: `${accentColor}18` }} />
-    <div className="flex justify-between items-start mb-4 relative z-10">
-      <div className="w-10 h-10 rounded-xl flex items-center justify-center border border-slate-200 bg-slate-50 shadow-sm">
+/* -- Cyber Stat Card ---------------------------------------------------- */
+const StatCard = ({ title, value, icon: Icon, trend, accentColor = '#00f0ff' }) => (
+  <motion.div
+    variants={itemVariants}
+    className="glass-panel p-5 relative overflow-hidden group hover:border-cyan-500/40 transition-all duration-300"
+  >
+    <div
+      className="absolute top-0 right-0 w-28 h-28 rounded-full -mr-10 -mt-10 blur-3xl opacity-20 group-hover:opacity-40 transition-opacity"
+      style={{ background: accentColor }}
+    />
+    <div className="flex justify-between items-start mb-3 relative z-10">
+      <div
+        className="w-10 h-10 rounded-xl flex items-center justify-center border border-white/10 shadow-lg"
+        style={{ background: `${accentColor}18` }}
+      >
         <Icon className="w-5 h-5" style={{ color: accentColor }} />
       </div>
       {trend !== undefined && (
-        <span className={`text-xs font-bold px-2 py-1 rounded-full
-          ${trend > 0 ? 'bg-emerald-50 text-emerald-600 border border-emerald-200'
-          : trend < 0 ? 'bg-rose-50 text-rose-600 border border-rose-200'
-          : 'bg-slate-100 text-slate-500 border border-slate-200'}`}>
-          {trend > 0 ? '+' : ''}{trend}%
+        <span className="text-[10px] font-mono font-bold px-2 py-0.5 rounded-full bg-emerald-500/15 text-emerald-400 border border-emerald-500/30">
+          +{trend}%
         </span>
       )}
     </div>
-    <p className="text-xs uppercase tracking-wider font-semibold text-slate-500 relative z-10">{title}</p>
-    <p className="text-2xl font-black mt-1 text-slate-800 relative z-10">{value}</p>
+    <p className="text-[11px] uppercase tracking-wider font-semibold text-slate-400 relative z-10">{title}</p>
+    <p className="text-2xl font-black mt-0.5 text-white tracking-tight relative z-10">{value}</p>
   </motion.div>
 );
 
 /* -- Model Card -------------------------------------------------------- */
 const ModelCard = ({ name, icon: Icon, description, path, color, metrics, badge }) => (
   <motion.div variants={itemVariants}>
-    <Link to={path} className="block h-full">
-      <div className="bg-white border border-slate-200 rounded-2xl p-6 h-full group cursor-pointer
-                      relative overflow-hidden shadow-sm hover:shadow-lg hover:border-slate-300
-                      transition-all duration-300">
-        <div className="absolute top-0 right-0 w-40 h-40 rounded-full -mr-16 -mt-16 blur-3xl
-                        opacity-0 group-hover:opacity-100 transition-opacity duration-700"
-          style={{ background: `radial-gradient(circle, ${color}20, transparent)` }} />
-        <div className="flex items-center justify-between mb-4 relative z-10">
-          <div className="flex items-center gap-3">
-            <div className="w-11 h-11 rounded-xl flex items-center justify-center border border-slate-200 shadow-sm"
-              style={{ background: `${color}12` }}>
-              <Icon className="w-5 h-5" style={{ color }} />
+    <Link to={path} className="block h-full group">
+      <div className="glass-panel-hover p-6 h-full flex flex-col justify-between relative overflow-hidden">
+        <div
+          className="absolute top-0 right-0 w-36 h-36 rounded-full -mr-12 -mt-12 blur-3xl opacity-15 group-hover:opacity-35 transition-opacity duration-500"
+          style={{ background: color }}
+        />
+        <div className="relative z-10 space-y-3">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-3">
+              <div
+                className="w-11 h-11 rounded-xl flex items-center justify-center border border-white/10 shadow-md"
+                style={{ background: `${color}20` }}
+              >
+                <Icon className="w-5 h-5" style={{ color }} />
+              </div>
+              <div>
+                <h3 className="font-extrabold text-base text-white tracking-tight leading-tight group-hover:text-cyan-300 transition-colors">
+                  {name}
+                </h3>
+                <span
+                  className="text-[10px] font-mono font-bold px-2 py-0.5 rounded-full border inline-block mt-0.5"
+                  style={{ color, borderColor: `${color}50`, background: `${color}15` }}
+                >
+                  {badge}
+                </span>
+              </div>
             </div>
-            <div>
-              <h3 className="font-bold text-base text-slate-800 leading-tight">{name}</h3>
-              <span className="text-[10px] font-bold px-2 py-0.5 rounded-full border"
-                style={{ color, borderColor: `${color}40`, background: `${color}10` }}>
-                {badge}
-              </span>
-            </div>
+            <ArrowRight className="w-4 h-4 text-slate-500 group-hover:text-cyan-400 group-hover:translate-x-1 transition-all" />
           </div>
-          <ArrowRight className="w-4 h-4 text-slate-400 group-hover:translate-x-1 transition-transform" />
+          <p className="text-xs text-slate-400 leading-relaxed line-clamp-3">{description}</p>
         </div>
-        <p className="text-sm text-slate-500 mb-4 leading-relaxed relative z-10">{description}</p>
-        <div className="grid grid-cols-3 gap-2 relative z-10">
+
+        <div className="grid grid-cols-3 gap-2 mt-4 pt-4 border-t border-white/5 relative z-10">
           {metrics.map((m, i) => (
-            <div key={i} className="p-2 rounded-xl bg-slate-50 border border-slate-100 text-center">
-              <div className="text-[10px] text-slate-400 font-medium">{m.label}</div>
-              <div className="text-sm font-bold text-slate-700 mt-0.5">{m.value}</div>
+            <div key={i} className="p-2 rounded-lg bg-slate-950/60 border border-white/5 text-center">
+              <div className="text-[9px] uppercase tracking-wider text-slate-500 font-semibold">{m.label}</div>
+              <div className="text-xs font-bold font-mono text-slate-200 mt-0.5">{m.value}</div>
             </div>
           ))}
         </div>
@@ -90,32 +101,36 @@ const ModelCard = ({ name, icon: Icon, description, path, color, metrics, badge 
 
 /* -- EDA Chart --------------------------------------------------------- */
 const EDAChart = ({ title, imgUrl, className = '' }) => (
-  <motion.div variants={itemVariants}
-    className={`bg-white border border-slate-200 rounded-2xl p-4 flex flex-col shadow-sm
-                hover:shadow-md hover:border-primary/20 transition-all duration-300 group ${className}`}>
+  <motion.div
+    variants={itemVariants}
+    className={`glass-panel p-4 flex flex-col hover:border-cyan-500/30 transition-all duration-300 group ${className}`}
+  >
     <div className="flex justify-between items-center mb-3">
-      <h4 className="text-sm font-semibold text-slate-700">{title}</h4>
-      <button className="p-1.5 text-slate-400 hover:text-primary transition-colors
-                         opacity-0 group-hover:opacity-100 bg-slate-50 border border-slate-200 rounded-lg">
+      <h4 className="text-xs font-bold text-slate-300 uppercase tracking-wider flex items-center gap-2">
+        <span className="w-1.5 h-1.5 rounded-full bg-cyan-400" />
+        {title}
+      </h4>
+      <button className="p-1.5 text-slate-400 hover:text-cyan-400 transition-colors bg-white/5 border border-white/10 rounded-lg">
         <Maximize2 className="w-3.5 h-3.5" />
       </button>
     </div>
-    <div className="relative flex-1 w-full min-h-[180px] rounded-xl overflow-hidden
-                    bg-slate-50 border border-slate-100 flex items-center justify-center">
-      <img src={imgUrl} alt={title}
-        className="w-full h-full object-contain transform group-hover:scale-[1.02] transition-transform duration-500"
+    <div className="relative flex-1 w-full min-h-[190px] rounded-xl overflow-hidden bg-slate-950/70 border border-white/5 flex items-center justify-center p-2">
+      <img
+        src={imgUrl}
+        alt={title}
+        className="w-full h-full object-contain filter contrast-105 group-hover:scale-[1.02] transition-transform duration-500"
         onError={(e) => { e.target.style.display = 'none'; e.target.nextSibling.style.display = 'flex'; }}
       />
-      <div className="absolute inset-0 hidden items-center justify-center flex-col text-slate-400 gap-2">
-        <Info className="w-6 h-6 opacity-40" />
-        <span className="text-xs text-slate-400">Run notebook first</span>
+      <div className="absolute inset-0 hidden items-center justify-center flex-col text-slate-500 gap-2">
+        <Info className="w-6 h-6 opacity-40 text-cyan-400" />
+        <span className="text-xs text-slate-400 font-mono">EDA Artifact Generated in Notebook 01</span>
       </div>
     </div>
   </motion.div>
 );
 
 /* ======================================================================
-   DASHBOARD PAGE
+   MAIN DASHBOARD PAGE
    ====================================================================== */
 export default function Dashboard() {
   const [selectedSample, setSelectedSample] = useState(null);
@@ -132,7 +147,6 @@ export default function Dashboard() {
     if (sample.recommended_models && !sample.recommended_models.includes(activeModel)) {
       setActiveModel(sample.recommended_models[0]);
     }
-    // Auto-trigger test on sample selection for instant feedback!
     runLiveTest(sample, sample.recommended_models ? sample.recommended_models[0] : activeModel);
   };
 
@@ -152,7 +166,6 @@ export default function Dashboard() {
       setTestResult(res.data);
     } catch (err) {
       console.error('Error running sample test:', err);
-      alert('Failed to connect to backend server. Make sure port 8000 is running.');
     } finally {
       setIsRunningTest(false);
     }
@@ -167,103 +180,79 @@ export default function Dashboard() {
       className="space-y-8 max-w-7xl mx-auto"
     >
       {/* Header */}
-      <header className="mb-2 flex flex-col md:flex-row md:items-end justify-between gap-5 relative z-10">
+      <header className="flex flex-col md:flex-row md:items-end justify-between gap-5 relative z-10 pb-4 border-b border-white/5">
         <div>
           <motion.div variants={itemVariants} className="flex items-center gap-3 mb-2">
-            <div className="w-11 h-11 rounded-xl bg-primary flex items-center justify-center shadow-md shadow-primary/20">
-              <Activity className="w-6 h-6 text-white" />
+            <div className="w-11 h-11 rounded-2xl bg-gradient-to-br from-cyan-400 via-indigo-500 to-purple-600 flex items-center justify-center shadow-lg shadow-cyan-500/25">
+              <Activity className="w-6 h-6 text-slate-950 font-black" />
             </div>
             <div>
-              <h2 className="text-3xl font-black tracking-tight text-slate-800 leading-none">
-                ConstructionSite AI
-              </h2>
-              <p className="text-[11px] text-slate-400 font-semibold uppercase tracking-widest mt-0.5">
-                Digital Twin Lab &middot; Generative AI Framework
+              <div className="flex items-center gap-2">
+                <h2 className="text-3xl font-black tracking-tight text-white leading-none">
+                  ConstructionSite <span className="text-cyan-400">AI</span>
+                </h2>
+                <span className="badge badge-primary font-mono text-[10px]">DIGITAL TWIN SUITE</span>
+              </div>
+              <p className="text-[11px] text-slate-400 font-semibold uppercase tracking-widest mt-1">
+                Generative AI Framework for Autonomous Safety &amp; Site Progress
               </p>
             </div>
           </motion.div>
-          <motion.p variants={itemVariants} className="text-slate-500 text-base leading-relaxed max-w-xl">
-            Generative Framework for Construction Site Monitoring &amp; Safety Analysis
-          </motion.p>
         </div>
-        <motion.div variants={itemVariants} className="flex gap-3">
-          <Link to="/compare" className="btn-secondary py-2.5 px-5 text-sm">
-            View Analysis <BarChart3 className="w-4 h-4" />
+
+        <motion.div variants={itemVariants} className="flex flex-wrap gap-2.5">
+          <Link to="/compare" className="btn-secondary py-2.5 px-4 text-xs">
+            <BarChart3 className="w-4 h-4 text-cyan-400" />
+            <span>Benchmark Models</span>
           </Link>
-          <Link to="/transformer" className="btn-primary py-2.5 px-5 text-sm">
-            Run Simulation <ArrowRight className="w-4 h-4" />
+          <Link to="/ethics" className="btn-primary py-2.5 px-4 text-xs">
+            <Rocket className="w-4 h-4" />
+            <span>Free Ethical Deploy</span>
           </Link>
         </motion.div>
       </header>
 
-      {/* Hero Feature Maps */}
-      <motion.div variants={itemVariants} className="w-full">
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-
-          {/* Future State */}
-          <div className="group cursor-pointer">
-            <div className="relative w-full aspect-[4/3] bg-slate-100 overflow-hidden mb-3 rounded-2xl
-                            border border-slate-200 shadow-sm hover:shadow-md transition-all duration-300">
-              <div className="absolute inset-0 bg-gradient-to-br from-primary/10 to-primary/5
-                              group-hover:from-primary/15 group-hover:to-primary/10 transition-all duration-700
-                              flex items-center justify-center">
-                <div className="text-center">
-                  <div className="w-16 h-16 rounded-2xl bg-primary/10 border border-primary/20
-                                  flex items-center justify-center mx-auto mb-3">
-                    <Maximize2 className="w-8 h-8 text-primary opacity-70" />
-                  </div>
-                  <span className="text-xs font-bold tracking-widest uppercase text-primary/60">
-                    Simulation Map Data
-                  </span>
-                </div>
-              </div>
-              <div className="absolute top-3 right-3">
-                <span className="bg-white/80 backdrop-blur-sm text-primary text-[10px] font-bold
-                                 px-2.5 py-1 rounded-full border border-primary/20 shadow-sm">
-                  LIVE PREVIEW
-                </span>
-              </div>
-            </div>
-            <h3 className="text-lg font-black text-slate-800 uppercase tracking-tight">Future State</h3>
-            <p className="text-slate-500 text-sm mt-0.5">Predicted visual progression of site</p>
+      {/* 🚀 DEPLOYMENT READY HIGHLIGHT BANNER */}
+      <motion.div
+        variants={itemVariants}
+        className="p-5 rounded-2xl bg-gradient-to-r from-cyan-950/60 via-slate-900 to-indigo-950/60 border border-cyan-500/30 shadow-2xl relative overflow-hidden flex flex-col lg:flex-row items-center justify-between gap-5"
+      >
+        <div className="absolute top-0 right-0 w-80 h-full bg-radial-glow opacity-30 pointer-events-none" />
+        <div className="flex items-start gap-4 relative z-10">
+          <div className="w-12 h-12 rounded-xl bg-cyan-500/20 border border-cyan-400/40 flex items-center justify-center text-cyan-300 flex-shrink-0 shadow-lg shadow-cyan-500/20">
+            <Rocket className="w-6 h-6 text-cyan-400" />
           </div>
-
-          {/* Spatial Risk */}
-          <div className="group cursor-pointer">
-            <div className="relative w-full aspect-[4/3] bg-slate-800 overflow-hidden mb-3 rounded-2xl
-                            border border-slate-700 shadow-sm hover:shadow-lg transition-all duration-300">
-              <div className="absolute inset-0 bg-gradient-to-tr from-slate-900 to-slate-800
-                              flex items-center justify-center">
-                <div className="text-center">
-                  <div className="w-16 h-16 rounded-2xl bg-rose-500/10 border border-rose-400/20
-                                  flex items-center justify-center mx-auto mb-3">
-                    <ShieldAlert className="w-8 h-8 text-rose-400 opacity-70" />
-                  </div>
-                  <span className="text-xs font-bold tracking-widest uppercase text-slate-400">
-                    Risk Map Data
-                  </span>
-                </div>
-              </div>
-              <div className="absolute top-3 right-3">
-                <span className="bg-slate-900/80 backdrop-blur-sm text-rose-400 text-[10px] font-bold
-                                 px-2.5 py-1 rounded-full border border-rose-400/20 shadow-sm">
-                  HAZARD ZONES
-                </span>
-              </div>
+          <div>
+            <div className="flex items-center gap-2">
+              <span className="text-xs font-bold uppercase tracking-wider text-cyan-400 font-mono">
+                Decoupled Cloud Architecture
+              </span>
+              <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald-500/20 text-emerald-300 border border-emerald-500/30">
+                100% Free Tiers
+              </span>
             </div>
-            <h3 className="text-lg font-black text-slate-800 uppercase tracking-tight">Spatial Risk</h3>
-            <p className="text-slate-500 text-sm mt-0.5">Hazard detection zones &amp; analysis</p>
+            <h3 className="text-base font-extrabold text-white mt-0.5">
+              Ready for Zero-Cost Production Deployment
+            </h3>
+            <p className="text-xs text-slate-300 mt-1 max-w-2xl leading-relaxed">
+              Deploy frontend on <strong className="text-white">Vercel / Cloudflare Pages</strong> and PyTorch backend on <strong className="text-white">Hugging Face Spaces</strong> (free 16GB RAM + 2 vCPU container) with automated worker anonymization.
+            </p>
           </div>
+        </div>
 
+        <div className="flex items-center gap-3 relative z-10 w-full lg:w-auto">
+          <Link to="/ethics" className="btn-secondary py-2 px-4 text-xs w-full lg:w-auto text-center">
+            View Deployment Guide
+          </Link>
         </div>
       </motion.div>
 
       {/* Stats Overview */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-        <StatCard title="Safety Classes"   value="10"    icon={ShieldAlert} trend={0}   accentColor="#003153" />
-        <StatCard title="Training Images"  value="3,245" icon={Database}    trend={12}  accentColor="#0891b2" />
-        <StatCard title="Total Detections" value="14.2K" icon={TrendingUp}  trend={8}   accentColor="#059669" />
-        <StatCard title="Models Deployed"  value="4 / 4" icon={Cpu}         trend={100} accentColor="#7c3aed" />
+        <StatCard title="Safety Taxonomy"   value="10 Classes" icon={ShieldAlert} trend={0}   accentColor="#00f0ff" />
+        <StatCard title="Training Images"  value="3,245"      icon={Database}    trend={12}  accentColor="#38bdf8" />
+        <StatCard title="Total Detections" value="14.2K"      icon={TrendingUp}  trend={8}   accentColor="#10b981" />
+        <StatCard title="Generative Suite" value="4 Models"    icon={Cpu}         trend={100} accentColor="#a855f7" />
       </div>
 
       {/* ======================================================================
@@ -272,11 +261,11 @@ export default function Dashboard() {
       <motion.div variants={itemVariants} className="space-y-4">
         <div className="flex items-center justify-between">
           <div className="section-title mb-0">
-            <div className="section-icon bg-primary text-white"><Zap className="w-4 h-4" /></div>
-            Multi-Model Live Testing Station
+            <div className="section-icon"><Zap className="w-4 h-4" /></div>
+            Multi-Model Live Inference Test Station
           </div>
-          <span className="text-xs font-bold text-slate-400 uppercase tracking-widest hidden sm:inline">
-            1-Click Dataset Benchmarking
+          <span className="text-xs font-mono text-cyan-400 font-bold uppercase tracking-widest hidden sm:inline">
+            FastAPI Tensor Pipeline Active
           </span>
         </div>
 
@@ -284,23 +273,23 @@ export default function Dashboard() {
         <SampleImageSelector
           onSelectSample={handleSelectSample}
           selectedSampleId={selectedSample?.id}
-          title="Sample Images For Testing On Dashboard"
-          subtitle="Click any real test image below to automatically load and run it across any model."
+          title="Curated Test Sample Feeds"
+          subtitle="Click any real test sample to run live inference across Autoencoder, VAE, DCGAN, or Transformer."
         />
 
         {/* Interactive Testing Bench */}
         {selectedSample && (
-          <div className="bg-white border border-slate-200 rounded-2xl p-6 shadow-md space-y-6">
+          <div className="glass-panel p-6 shadow-2xl space-y-6 border border-white/10">
             {/* Model Selection Tabs & Run Button */}
-            <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 pb-4 border-b border-slate-100">
+            <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 pb-4 border-b border-white/10">
               <div className="flex items-center gap-2">
-                <span className="text-xs font-bold text-slate-400 uppercase tracking-wider">Target Model:</span>
-                <div className="flex flex-wrap gap-1.5 p-1 bg-slate-100 rounded-xl">
+                <span className="text-xs font-mono font-bold text-slate-400 uppercase tracking-wider">Target Model:</span>
+                <div className="flex flex-wrap gap-1.5 p-1 bg-slate-950/80 border border-white/10 rounded-xl">
                   {[
-                    { id: 'ae', label: 'Autoencoder & PPE', icon: Box, color: '#0891b2' },
-                    { id: 'vae', label: 'VAE Reconstructor', icon: Sparkles, color: '#7c3aed' },
-                    { id: 'transformer', label: 'Transformer 4D', icon: Layers, color: '#003153' },
-                    { id: 'gan', label: 'DCGAN Benchmark', icon: ImageIcon, color: '#059669' }
+                    { id: 'ae', label: 'Autoencoder & PPE', icon: Box, color: '#00f0ff' },
+                    { id: 'vae', label: 'VAE Latent Prior', icon: Sparkles, color: '#a855f7' },
+                    { id: 'transformer', label: 'Transformer 4D', icon: Layers, color: '#38bdf8' },
+                    { id: 'gan', label: 'DCGAN Generator', icon: ImageIcon, color: '#10b981' }
                   ].map(tab => {
                     const TabIcon = tab.icon;
                     const isActive = activeModel === tab.id;
@@ -311,13 +300,13 @@ export default function Dashboard() {
                           setActiveModel(tab.id);
                           runLiveTest(selectedSample, tab.id);
                         }}
-                        className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold transition-all ${
+                        className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold transition-all cursor-pointer ${
                           isActive
-                            ? 'bg-white text-slate-800 shadow-sm'
-                            : 'text-slate-500 hover:text-slate-800'
+                            ? 'bg-gradient-to-r from-cyan-400 to-sky-500 text-slate-950 shadow-md shadow-cyan-500/20'
+                            : 'text-slate-400 hover:text-white hover:bg-white/5'
                         }`}
                       >
-                        <TabIcon className="w-3.5 h-3.5" style={{ color: tab.color }} />
+                        <TabIcon className="w-3.5 h-3.5" style={{ color: isActive ? '#080c14' : tab.color }} />
                         {tab.label}
                       </button>
                     );
@@ -329,12 +318,12 @@ export default function Dashboard() {
                 <button
                   onClick={() => runLiveTest(selectedSample, activeModel)}
                   disabled={isRunningTest}
-                  className="btn-primary py-2 px-4 text-xs flex items-center gap-2 shadow-md shadow-primary/20"
+                  className="btn-primary py-2 px-4 text-xs"
                 >
                   {isRunningTest ? (
                     <>
                       <RefreshCw className="w-3.5 h-3.5 animate-spin" />
-                      Running Neural Inference...
+                      Computing Tensors...
                     </>
                   ) : (
                     <>
@@ -348,7 +337,7 @@ export default function Dashboard() {
                   to={activeModel === 'ae' ? '/autoencoder' : activeModel === 'vae' ? '/vae' : activeModel === 'transformer' ? '/transformer' : '/gan'}
                   className="btn-secondary py-2 px-3 text-xs flex items-center gap-1.5"
                 >
-                  <span>Open Deep Dive</span>
+                  <span>Model Lab</span>
                   <ArrowRight className="w-3 h-3" />
                 </Link>
               </div>
@@ -357,46 +346,46 @@ export default function Dashboard() {
             {/* Test Arena: Input Details + Real-time Results */}
             <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
               {/* Left Column: Selected Sample Card */}
-              <div className="lg:col-span-4 bg-slate-50 border border-slate-200 rounded-xl p-4 space-y-3">
+              <div className="lg:col-span-4 bg-slate-950/60 border border-white/10 rounded-xl p-4 space-y-3">
                 <div className="flex justify-between items-start">
                   <div>
-                    <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400">Selected Test Input</span>
-                    <h4 className="font-bold text-slate-800 text-sm">{selectedSample.title}</h4>
+                    <span className="text-[10px] font-mono font-bold uppercase tracking-wider text-slate-500">Selected Feed</span>
+                    <h4 className="font-extrabold text-white text-sm">{selectedSample.title}</h4>
                   </div>
-                  <span className="text-[10px] font-bold px-2 py-0.5 rounded border bg-white shadow-sm text-slate-700">
+                  <span className="text-[10px] font-mono font-bold px-2 py-0.5 rounded border bg-slate-900 border-white/10 text-cyan-300">
                     {selectedSample.category}
                   </span>
                 </div>
 
-                <div className="aspect-square w-full rounded-xl overflow-hidden bg-slate-900 border border-slate-200 relative group">
+                <div className="aspect-square w-full rounded-xl overflow-hidden bg-slate-950 border border-white/10 relative group">
                   <img
                     src={selectedSample.image}
                     alt={selectedSample.title}
                     className="w-full h-full object-cover"
                   />
-                  <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity flex items-end p-3">
-                    <span className="text-[10px] font-mono text-white/90 truncate">{selectedSample.id}</span>
+                  <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent flex items-end p-3">
+                    <span className="text-[10px] font-mono text-cyan-300 truncate">{selectedSample.id}</span>
                   </div>
                 </div>
 
-                <p className="text-xs text-slate-500 leading-relaxed">{selectedSample.description}</p>
+                <p className="text-xs text-slate-400 leading-relaxed">{selectedSample.description}</p>
 
                 {/* Additional controls for Transformer */}
                 {activeModel === 'transformer' && (
-                  <div className="pt-3 border-t border-slate-200 space-y-2">
-                    <div className="flex justify-between text-xs font-semibold text-slate-600">
-                      <span>Stage Horizon:</span>
-                      <span className="text-primary font-bold">
+                  <div className="pt-3 border-t border-white/10 space-y-2">
+                    <div className="flex justify-between text-xs font-semibold text-slate-300">
+                      <span>Simulation Horizon:</span>
+                      <span className="text-cyan-400 font-mono font-bold">
                         {stageIdx === 0 ? 'Stage 0 (Groundwork)' : stageIdx === 1 ? 'Stage 1 (Foundation)' : 'Stage 2 (Superstructure)'}
                       </span>
                     </div>
-                    <div className="grid grid-cols-3 gap-1">
+                    <div className="grid grid-cols-3 gap-1.5">
                       {[0, 1, 2].map(st => (
                         <button
                           key={st}
                           onClick={() => { setStageIdx(st); runLiveTest(selectedSample, 'transformer'); }}
-                          className={`py-1 rounded text-[10px] font-bold border ${
-                            stageIdx === st ? 'bg-primary text-white border-primary' : 'bg-white text-slate-600 border-slate-200'
+                          className={`py-1 rounded-lg text-[10px] font-mono font-bold border cursor-pointer transition-all ${
+                            stageIdx === st ? 'bg-cyan-400 text-slate-950 border-cyan-400' : 'bg-slate-900 text-slate-400 border-white/10 hover:text-white'
                           }`}
                         >
                           Stage {st}
@@ -408,20 +397,20 @@ export default function Dashboard() {
               </div>
 
               {/* Right Column: Live Model Output Display */}
-              <div className="lg:col-span-8 bg-slate-50 border border-slate-200 rounded-xl p-5 min-h-[320px] flex flex-col justify-center">
+              <div className="lg:col-span-8 bg-slate-950/60 border border-white/10 rounded-xl p-5 min-h-[320px] flex flex-col justify-center">
                 {isRunningTest && (
                   <div className="flex flex-col items-center justify-center py-12 text-slate-400 gap-3">
-                    <RefreshCw className="w-8 h-8 text-primary animate-spin" />
-                    <span className="text-sm font-semibold text-slate-600">Executing {activeModel.toUpperCase()} inference on test sample...</span>
-                    <span className="text-xs text-slate-400 font-mono">PyTorch tensor pipeline active</span>
+                    <RefreshCw className="w-8 h-8 text-cyan-400 animate-spin" />
+                    <span className="text-sm font-semibold text-white">Executing {activeModel.toUpperCase()} forward pass...</span>
+                    <span className="text-xs text-slate-500 font-mono">Auto-scaled tensor normalization active</span>
                   </div>
                 )}
 
                 {!isRunningTest && !testResult && (
                   <div className="text-center py-12 text-slate-400 space-y-2">
-                    <Zap className="w-8 h-8 text-slate-300 mx-auto" />
-                    <p className="text-sm font-semibold text-slate-600">Ready to test</p>
-                    <p className="text-xs text-slate-400">Click &quot;Run Live Test&quot; above to see real-time inference output</p>
+                    <Zap className="w-8 h-8 text-cyan-400 mx-auto" />
+                    <p className="text-sm font-semibold text-slate-200">Neural inference ready</p>
+                    <p className="text-xs text-slate-500">Click &quot;Run Live Test&quot; above to see real-time model synthesis</p>
                   </div>
                 )}
 
@@ -430,25 +419,25 @@ export default function Dashboard() {
                     {/* Autoencoder & Classification Result */}
                     {activeModel === 'ae' && (
                       <div className="space-y-4">
-                        <div className="flex flex-wrap items-center justify-between gap-3 p-4 bg-white rounded-xl border border-slate-200 shadow-sm">
+                        <div className="flex flex-wrap items-center justify-between gap-3 p-4 bg-slate-900/90 rounded-xl border border-white/10">
                           <div className="flex items-center gap-3">
-                            <div className={`w-10 h-10 rounded-xl flex items-center justify-center font-black text-white shadow-sm ${
-                              testResult.result.status_color === 'emerald' ? 'bg-emerald-600' :
-                              testResult.result.status_color === 'rose' ? 'bg-rose-600' : 'bg-primary'
+                            <div className={`w-11 h-11 rounded-xl flex items-center justify-center font-mono font-black text-slate-950 shadow-md ${
+                              testResult.result.status_color === 'emerald' ? 'bg-emerald-400' :
+                              testResult.result.status_color === 'rose' ? 'bg-rose-400' : 'bg-cyan-400'
                             }`}>
                               {testResult.result.confidence_percentage}%
                             </div>
                             <div>
-                              <div className="text-xs text-slate-400 font-bold uppercase tracking-wider">Classification Prediction</div>
-                              <div className="text-lg font-black text-slate-800">{testResult.result.predicted_class}</div>
+                              <div className="text-[10px] text-slate-400 font-mono uppercase tracking-wider">Classification Prediction</div>
+                              <div className="text-lg font-black text-white">{testResult.result.predicted_class}</div>
                             </div>
                           </div>
-                          <span className={`px-3 py-1 rounded-full text-xs font-black border ${
+                          <span className={`px-3 py-1 rounded-full text-xs font-bold border ${
                             testResult.result.status_color === 'emerald'
-                              ? 'bg-emerald-50 text-emerald-700 border-emerald-300'
+                              ? 'bg-emerald-500/20 text-emerald-300 border-emerald-500/40'
                               : testResult.result.status_color === 'rose'
-                              ? 'bg-rose-50 text-rose-700 border-rose-300'
-                              : 'bg-primary/10 text-primary border-primary/20'
+                              ? 'bg-rose-500/20 text-rose-300 border-rose-500/40'
+                              : 'bg-cyan-500/20 text-cyan-300 border-cyan-500/40'
                           }`}>
                             {testResult.result.safety_status}
                           </span>
@@ -457,18 +446,18 @@ export default function Dashboard() {
                         {/* Reconstruction Comparison */}
                         {testResult.result.reconstructed_image && (
                           <div className="grid grid-cols-2 gap-4">
-                            <div className="bg-white rounded-xl p-3 border border-slate-200 text-center">
-                              <span className="text-[10px] font-bold text-slate-400 uppercase block mb-2">Original Sample</span>
-                              <div className="aspect-square rounded-lg overflow-hidden bg-slate-100 border border-slate-100">
+                            <div className="bg-slate-900/80 rounded-xl p-3 border border-white/10 text-center">
+                              <span className="text-[10px] font-mono text-slate-400 uppercase block mb-2">Original Input Feed</span>
+                              <div className="aspect-square rounded-lg overflow-hidden bg-slate-950 border border-white/5">
                                 <img src={selectedSample.image} alt="Original" className="w-full h-full object-cover" />
                               </div>
                             </div>
-                            <div className="bg-white rounded-xl p-3 border border-slate-200 text-center">
+                            <div className="bg-slate-900/80 rounded-xl p-3 border border-cyan-500/30 text-center">
                               <div className="flex justify-between items-center mb-2 px-1">
-                                <span className="text-[10px] font-bold text-primary uppercase">Autoencoder Reconstructed</span>
+                                <span className="text-[10px] font-mono font-bold text-cyan-300 uppercase">Autoencoder V2 Output</span>
                                 <span className="text-[10px] font-mono text-slate-400">MSE: {testResult.result.mse_loss}</span>
                               </div>
-                              <div className="aspect-square rounded-lg overflow-hidden bg-slate-100 border border-primary/20">
+                              <div className="aspect-square rounded-lg overflow-hidden bg-slate-950 border border-cyan-500/30">
                                 <img src={testResult.result.reconstructed_image} alt="Reconstructed" className="w-full h-full object-cover" />
                               </div>
                             </div>
@@ -481,22 +470,22 @@ export default function Dashboard() {
                     {activeModel === 'vae' && (
                       <div className="space-y-4">
                         <div className="grid grid-cols-2 gap-4">
-                          <div className="bg-white rounded-xl p-3 border border-slate-200 text-center">
-                            <span className="text-[10px] font-bold text-slate-400 uppercase block mb-2">Input Prior</span>
-                            <div className="aspect-square rounded-lg overflow-hidden bg-slate-100">
+                          <div className="bg-slate-900/80 rounded-xl p-3 border border-white/10 text-center">
+                            <span className="text-[10px] font-mono text-slate-400 uppercase block mb-2">Original Prior</span>
+                            <div className="aspect-square rounded-lg overflow-hidden bg-slate-950">
                               <img src={selectedSample.image} alt="Input" className="w-full h-full object-cover" />
                             </div>
                           </div>
-                          <div className="bg-white rounded-xl p-3 border border-slate-200 text-center">
-                            <span className="text-[10px] font-bold text-secondary uppercase block mb-2">VAE Latent Reconstruction</span>
-                            <div className="aspect-square rounded-lg overflow-hidden bg-slate-100 border border-secondary/30">
+                          <div className="bg-slate-900/80 rounded-xl p-3 border border-purple-500/30 text-center">
+                            <span className="text-[10px] font-mono font-bold text-purple-300 uppercase block mb-2">VAE Latent Reconstruction</span>
+                            <div className="aspect-square rounded-lg overflow-hidden bg-slate-950 border border-purple-500/30">
                               <img src={testResult.result.reconstructed_image} alt="VAE Reconstructed" className="w-full h-full object-cover" />
                             </div>
                           </div>
                         </div>
-                        <div className="p-3 bg-white rounded-xl border border-slate-200 text-xs text-slate-600 flex items-center justify-between">
-                          <span>Latent Representation: <strong className="font-mono text-secondary">z ~ N(μ, σ²), d=256</strong></span>
-                          <span className="badge badge-secondary">Probabilistic Encoding</span>
+                        <div className="p-3 bg-slate-900/80 rounded-xl border border-white/10 text-xs text-slate-300 flex items-center justify-between">
+                          <span>Latent Representation: <strong className="font-mono text-purple-400">z ~ N(μ, σ²), d=256</strong></span>
+                          <span className="badge badge-primary font-mono">Probabilistic Encoding</span>
                         </div>
                       </div>
                     )}
@@ -505,22 +494,22 @@ export default function Dashboard() {
                     {activeModel === 'transformer' && (
                       <div className="space-y-4">
                         <div className="grid grid-cols-2 gap-4">
-                          <div className="bg-white rounded-xl p-3 border border-slate-200 text-center">
-                            <span className="text-[10px] font-bold text-cyan-600 uppercase block mb-2">Predicted Future Progression</span>
-                            <div className="aspect-square rounded-lg overflow-hidden bg-slate-100 border border-cyan-200">
+                          <div className="bg-slate-900/80 rounded-xl p-3 border border-cyan-500/30 text-center">
+                            <span className="text-[10px] font-mono font-bold text-cyan-300 uppercase block mb-2">Predicted Future Progression</span>
+                            <div className="aspect-square rounded-lg overflow-hidden bg-slate-950 border border-cyan-500/30">
                               <img src={testResult.result.future_sim_image} alt="Future State" className="w-full h-full object-cover" />
                             </div>
                           </div>
-                          <div className="bg-white rounded-xl p-3 border border-slate-200 text-center">
-                            <span className="text-[10px] font-bold text-rose-600 uppercase block mb-2">Spatial Risk Hazard Map</span>
-                            <div className="aspect-square rounded-lg overflow-hidden bg-slate-100 border border-rose-200">
+                          <div className="bg-slate-900/80 rounded-xl p-3 border border-rose-500/30 text-center">
+                            <span className="text-[10px] font-mono font-bold text-rose-300 uppercase block mb-2">Spatial Risk Hazard Map</span>
+                            <div className="aspect-square rounded-lg overflow-hidden bg-slate-950 border border-rose-500/30">
                               <img src={testResult.result.risk_map_image} alt="Risk Map" className="w-full h-full object-cover" />
                             </div>
                           </div>
                         </div>
-                        <div className="p-3 bg-white rounded-xl border border-slate-200 text-xs text-slate-600 flex items-center justify-between">
-                          <span>Digital Twin Horizon: <strong className="text-primary font-bold">+{deltaDays} Days</strong></span>
-                          <span className="text-xs font-mono text-emerald-600 font-bold">Attention Map Synthesized</span>
+                        <div className="p-3 bg-slate-900/80 rounded-xl border border-white/10 text-xs text-slate-300 flex items-center justify-between">
+                          <span>Digital Twin Horizon: <strong className="text-cyan-300 font-mono font-bold">+{deltaDays} Days</strong></span>
+                          <span className="text-xs font-mono text-emerald-400 font-bold">Attention Map Synthesized</span>
                         </div>
                       </div>
                     )}
@@ -529,22 +518,22 @@ export default function Dashboard() {
                     {activeModel === 'gan' && (
                       <div className="space-y-4">
                         <div className="grid grid-cols-2 gap-4">
-                          <div className="bg-white rounded-xl p-3 border border-slate-200 text-center">
-                            <span className="text-[10px] font-bold text-slate-400 uppercase block mb-2">Real Site Benchmark</span>
-                            <div className="aspect-square rounded-lg overflow-hidden bg-slate-100">
+                          <div className="bg-slate-900/80 rounded-xl p-3 border border-white/10 text-center">
+                            <span className="text-[10px] font-mono text-slate-400 uppercase block mb-2">Real Site Benchmark</span>
+                            <div className="aspect-square rounded-lg overflow-hidden bg-slate-950">
                               <img src={selectedSample.image} alt="Real Benchmark" className="w-full h-full object-cover" />
                             </div>
                           </div>
-                          <div className="bg-white rounded-xl p-3 border border-slate-200 text-center">
-                            <span className="text-[10px] font-bold text-emerald-600 uppercase block mb-2">DCGAN Synthetic Generation</span>
-                            <div className="aspect-square rounded-lg overflow-hidden bg-slate-100 border border-emerald-300">
+                          <div className="bg-slate-900/80 rounded-xl p-3 border border-emerald-500/30 text-center">
+                            <span className="text-[10px] font-mono font-bold text-emerald-300 uppercase block mb-2">DCGAN Synthetic Generation</span>
+                            <div className="aspect-square rounded-lg overflow-hidden bg-slate-950 border border-emerald-500/30">
                               <img src={testResult.result.generated_image_url} alt="GAN Generated" className="w-full h-full object-cover" />
                             </div>
                           </div>
                         </div>
-                        <div className="p-3 bg-white rounded-xl border border-slate-200 text-xs text-slate-600 flex items-center justify-between">
-                          <span>Adversarial Synthesis: <strong className="font-mono text-emerald-600">z ~ N(0, I), FID: 98.3</strong></span>
-                          <span className="badge badge-success">Photorealistic Synthesis</span>
+                        <div className="p-3 bg-slate-900/80 rounded-xl border border-white/10 text-xs text-slate-300 flex items-center justify-between">
+                          <span>Adversarial Synthesis: <strong className="font-mono text-emerald-400">z ~ N(0, I), FID: 98.3</strong></span>
+                          <span className="badge badge-success font-mono">Photorealistic Synthesis</span>
                         </div>
                       </div>
                     )}
@@ -560,29 +549,29 @@ export default function Dashboard() {
       <motion.div variants={itemVariants}>
         <div className="section-title">
           <div className="section-icon"><Layers className="w-4 h-4" /></div>
-          Implemented Models
+          Generative AI Model Zoo
         </div>
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-5">
           <ModelCard
-            name="Autoencoder & Classification"
+            name="Autoencoder & PPE"
             icon={Box}
-            badge="86.8% Accuracy"
-            description="AutoencoderV2 with U-Net skip connections & supervised classification head. Classifies construction images across 10 safety & PPE compliance categories."
+            badge="87.4% Acc"
+            description="AutoencoderV2 with U-Net multi-scale skip connections & fine-tuned safety classifier for 10-class PPE compliance."
             path="/autoencoder"
-            color="#0891b2"
+            color="#00f0ff"
             metrics={[
-              { label: 'Accuracy', value: '86.8%' },
+              { label: 'Accuracy', value: '87.4%' },
               { label: 'Classes',  value: '10 PPE' },
               { label: 'Val MSE',  value: '0.0001' },
             ]}
           />
           <ModelCard
-            name="VAE"
+            name="VAE Latent Model"
             icon={Sparkles}
-            badge="PRACT 2"
-            description="Probabilistic generative model with reparameterization trick. Generates novel construction scenes from structured latent space z ~ N(0, I)."
+            badge="Probabilistic"
+            description="Variational Autoencoder learning smooth normal distribution z ~ N(μ, σ²) for sampling novel construction site states."
             path="/vae"
-            color="#7c3aed"
+            color="#a855f7"
             metrics={[
               { label: 'SSIM',   value: '0.72'  },
               { label: 'FID',    value: '142.5' },
@@ -590,12 +579,12 @@ export default function Dashboard() {
             ]}
           />
           <ModelCard
-            name="DCGAN"
+            name="DCGAN Synthesis"
             icon={ImageIcon}
-            badge="PRACT 3"
-            description="Deep Convolutional GAN with adversarial training for photorealistic synthetic scene generation. Lowest FID score among all models."
+            badge="Adversarial"
+            description="Deep Convolutional GAN trained in adversarial game (Generator vs Discriminator) for photorealistic site image synthesis."
             path="/gan"
-            color="#059669"
+            color="#10b981"
             metrics={[
               { label: 'FID',    value: '98.3'  },
               { label: 'Latent', value: '100-d' },
@@ -603,12 +592,12 @@ export default function Dashboard() {
             ]}
           />
           <ModelCard
-            name="Transformer"
+            name="4D Transformer"
             icon={Layers}
-            badge="R2"
-            description="Multi-modal Vision Transformer with cross-attention for future site state prediction and spatial risk hazard mapping."
+            badge="Spatiotemporal"
+            description="Vision Transformer simulating future construction progress (T+30, T+60 days) and generating spatial risk heatmaps."
             path="/transformer"
-            color="#003153"
+            color="#38bdf8"
             metrics={[
               { label: 'Heads',   value: '8'      },
               { label: 'Embed',   value: '256-d'  },
@@ -622,44 +611,38 @@ export default function Dashboard() {
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         <motion.div variants={itemVariants}>
           <Link to="/compare" className="block">
-            <div className="bg-white border border-slate-200 rounded-2xl p-5 flex items-center gap-4 group
-                            cursor-pointer shadow-sm hover:shadow-md hover:border-amber-200 transition-all duration-300">
-              <div className="w-12 h-12 rounded-xl flex items-center justify-center flex-shrink-0"
-                style={{ background: 'linear-gradient(135deg, #f59e0b, #ef4444)',
-                         boxShadow: '0 4px 14px rgba(245,158,11,0.25)' }}>
-                <BarChart3 className="w-6 h-6 text-white" />
+            <div className="glass-panel p-5 flex items-center gap-4 group hover:border-cyan-500/40 transition-all duration-300">
+              <div className="w-12 h-12 rounded-xl flex items-center justify-center flex-shrink-0 bg-gradient-to-br from-amber-500 to-rose-500 text-slate-950 font-bold shadow-lg shadow-amber-500/25">
+                <BarChart3 className="w-6 h-6 text-slate-950" />
               </div>
               <div className="flex-1 min-w-0">
-                <h4 className="font-bold text-slate-800 group-hover:text-amber-600 transition-colors">
-                  Comparative Analysis
+                <h4 className="font-bold text-white group-hover:text-cyan-300 transition-colors">
+                  Comparative Analysis Benchmark
                 </h4>
-                <p className="text-sm text-slate-500 mt-0.5 leading-snug">
-                  Performance metrics, strengths/weaknesses, visual comparison across all models.
+                <p className="text-xs text-slate-400 mt-0.5 leading-snug">
+                  Quantitative metric tables, strengths &amp; trade-offs across all 4 generative architectures.
                 </p>
               </div>
-              <ArrowRight className="w-5 h-5 text-slate-400 group-hover:text-amber-500 group-hover:translate-x-1 transition-all flex-shrink-0" />
+              <ArrowRight className="w-5 h-5 text-slate-500 group-hover:text-cyan-400 group-hover:translate-x-1 transition-all flex-shrink-0" />
             </div>
           </Link>
         </motion.div>
 
         <motion.div variants={itemVariants}>
           <Link to="/ethics" className="block">
-            <div className="bg-white border border-slate-200 rounded-2xl p-5 flex items-center gap-4 group
-                            cursor-pointer shadow-sm hover:shadow-md hover:border-rose-200 transition-all duration-300">
-              <div className="w-12 h-12 rounded-xl flex items-center justify-center flex-shrink-0"
-                style={{ background: 'linear-gradient(135deg, #ef4444, #7c3aed)',
-                         boxShadow: '0 4px 14px rgba(239,68,68,0.25)' }}>
+            <div className="glass-panel p-5 flex items-center gap-4 group hover:border-purple-500/40 transition-all duration-300">
+              <div className="w-12 h-12 rounded-xl flex items-center justify-center flex-shrink-0 bg-gradient-to-br from-purple-500 to-indigo-500 text-white shadow-lg shadow-purple-500/25">
                 <Scale className="w-6 h-6 text-white" />
               </div>
               <div className="flex-1 min-w-0">
-                <h4 className="font-bold text-slate-800 group-hover:text-rose-600 transition-colors">
-                  Ethics &amp; Responsible AI
+                <h4 className="font-bold text-white group-hover:text-purple-300 transition-colors">
+                  Ethics, Privacy &amp; 100% Free Deployment
                 </h4>
-                <p className="text-sm text-slate-500 mt-0.5 leading-snug">
-                  Bias analysis, misuse prevention, privacy, sustainability, and regulatory compliance.
+                <p className="text-xs text-slate-400 mt-0.5 leading-snug">
+                  GDPR anonymization, non-punitive monitoring &amp; zero-cost Hugging Face + Vercel deployment playbook.
                 </p>
               </div>
-              <ArrowRight className="w-5 h-5 text-slate-400 group-hover:text-rose-500 group-hover:translate-x-1 transition-all flex-shrink-0" />
+              <ArrowRight className="w-5 h-5 text-slate-500 group-hover:text-purple-400 group-hover:translate-x-1 transition-all flex-shrink-0" />
             </div>
           </Link>
         </motion.div>
@@ -669,19 +652,18 @@ export default function Dashboard() {
       <motion.div variants={itemVariants}>
         <div className="section-title">
           <div className="section-icon"><BookOpen className="w-4 h-4" /></div>
-          Exploratory Data Analysis
+          Dataset Exploratory Data Analysis (Roboflow CSS)
         </div>
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
-          <EDAChart title="Class Distribution"  imgUrl={`${API}/data/processed/features/class_distribution.png`} className="lg:col-span-2 h-[320px]" />
-          <EDAChart title="BBox Spatial Density" imgUrl={`${API}/data/processed/features/bbox_density.png`}       className="h-[320px]" />
+          <EDAChart title="Class Distribution (10 Classes)"  imgUrl={`${API}/data/processed/features/class_distribution.png`} className="lg:col-span-2 h-[320px]" />
+          <EDAChart title="Bounding Box Spatial Density"      imgUrl={`${API}/data/processed/features/bbox_density.png`}       className="h-[320px]" />
         </div>
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 mt-4">
-          <EDAChart title="Co-occurrence Matrix" imgUrl={`${API}/data/processed/features/co_occurrence.png`}       className="h-[300px]" />
-          <EDAChart title="Resolution Analysis"  imgUrl={`${API}/data/processed/features/resolution_analysis.png`} className="h-[300px]" />
-          <EDAChart title="Pixel Intensity"      imgUrl={`${API}/data/processed/features/pixel_intensity.png`}     className="h-[300px]" />
+          <EDAChart title="Object Co-occurrence Matrix" imgUrl={`${API}/data/processed/features/co_occurrence.png`}       className="h-[300px]" />
+          <EDAChart title="Image Resolution Distribution" imgUrl={`${API}/data/processed/features/resolution_analysis.png`} className="h-[300px]" />
+          <EDAChart title="RGB Channel Pixel Intensity"  imgUrl={`${API}/data/processed/features/pixel_intensity.png`}     className="h-[300px]" />
         </div>
       </motion.div>
-
     </motion.div>
   );
 }

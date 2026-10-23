@@ -1,5 +1,11 @@
+import { useState } from 'react';
 import { motion } from 'framer-motion';
-import { ShieldAlert, AlertTriangle, Eye, Leaf, Scale, Users, Lock, Globe, Cpu, FileWarning, Search, Ban, BarChart3, BookOpen, Info } from 'lucide-react';
+import {
+  ShieldAlert, AlertTriangle, Eye, Leaf, Scale, Users, Lock,
+  Globe, Cpu, FileWarning, Search, Ban, BarChart3, BookOpen,
+  Info, Cloud, Server, Terminal, ShieldCheck, CheckCircle2,
+  Copy, Check, Sparkles, ExternalLink, ArrowRight
+} from 'lucide-react';
 
 const containerVariants = {
   hidden: { opacity: 0 },
@@ -37,6 +43,14 @@ const EthicsSection = ({ title, icon: Icon, color, colorClass, items, children }
 );
 
 export default function EthicsView() {
+  const [deployTab, setDeployTab] = useState('hf'); // 'hf' | 'vercel' | 'privacy'
+  const [copiedSnippet, setCopiedSnippet] = useState(null);
+
+  const handleCopy = (text, id) => {
+    navigator.clipboard.writeText(text);
+    setCopiedSnippet(id);
+    setTimeout(() => setCopiedSnippet(null), 2200);
+  };
   return (
     <motion.div
       variants={containerVariants}
@@ -408,6 +422,191 @@ export default function EthicsView() {
           </li>
         </ul>
       </EthicsSection>
+
+      {/* ═══════════════════════════════════════════════════
+           100% FREE & ETHICAL DEPLOYMENT PLAYBOOK
+         ═══════════════════════════════════════════════════ */}
+      <motion.div variants={itemVariants} className="glass-panel p-6 border-cyan-500/30 relative overflow-hidden">
+        <div className="absolute top-0 right-0 w-96 h-96 bg-cyan-500/5 rounded-full blur-3xl pointer-events-none" />
+
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
+          <div className="flex items-center gap-3">
+            <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-cyan-500 to-blue-600 flex items-center justify-center text-white shadow-lg shadow-cyan-500/25">
+              <Cloud className="w-5 h-5" />
+            </div>
+            <div>
+              <div className="flex items-center gap-2">
+                <h3 className="text-xl font-bold text-white">100% Free &amp; Ethical Deployment Playbook</h3>
+                <span className="badge badge-success font-mono text-[10px]">Zero Cloud Cost</span>
+              </div>
+              <p className="text-xs text-slate-400 mt-0.5">
+                Complete blueprints to host PyTorch neural weights, FastAPI, and Vite React frontend with privacy guardrails at $0/month.
+              </p>
+            </div>
+          </div>
+
+          {/* Sub-tabs */}
+          <div className="flex p-1 bg-white/[0.04] backdrop-blur-md rounded-xl border border-white/10 self-start sm:self-auto">
+            <button
+              onClick={() => setDeployTab('hf')}
+              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold transition-all ${
+                deployTab === 'hf'
+                  ? 'bg-gradient-to-r from-cyan-500 to-blue-600 text-white shadow-md'
+                  : 'text-slate-400 hover:text-white'
+              }`}
+            >
+              <Server className="w-3.5 h-3.5" />
+              HF Spaces (Backend)
+            </button>
+            <button
+              onClick={() => setDeployTab('vercel')}
+              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold transition-all ${
+                deployTab === 'vercel'
+                  ? 'bg-gradient-to-r from-cyan-500 to-blue-600 text-white shadow-md'
+                  : 'text-slate-400 hover:text-white'
+              }`}
+            >
+              <Globe className="w-3.5 h-3.5" />
+              Vercel (Frontend)
+            </button>
+            <button
+              onClick={() => setDeployTab('privacy')}
+              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold transition-all ${
+                deployTab === 'privacy'
+                  ? 'bg-gradient-to-r from-cyan-500 to-blue-600 text-white shadow-md'
+                  : 'text-slate-400 hover:text-white'
+              }`}
+            >
+              <ShieldCheck className="w-3.5 h-3.5" />
+              Privacy Guardrails
+            </button>
+          </div>
+        </div>
+
+        {/* Tab 1: Hugging Face Spaces */}
+        {deployTab === 'hf' && (
+          <div className="space-y-4">
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+              <div className="p-3.5 rounded-xl bg-white/[0.03] border border-white/10">
+                <div className="text-xs font-bold text-cyan-400 mb-1 flex items-center gap-1.5">
+                  <CheckCircle2 className="w-3.5 h-3.5" /> 16 GB RAM + 2 vCPU
+                </div>
+                <div className="text-xs text-slate-400">
+                  HF Spaces provides 16GB RAM for free on CPU basic tier — ample room to hold all 4 PyTorch architectures simultaneously in memory.
+                </div>
+              </div>
+              <div className="p-3.5 rounded-xl bg-white/[0.03] border border-white/10">
+                <div className="text-xs font-bold text-cyan-400 mb-1 flex items-center gap-1.5">
+                  <CheckCircle2 className="w-3.5 h-3.5" /> Free Git LFS Storage
+                </div>
+                <div className="text-xs text-slate-400">
+                  Track heavy model weights (<code className="text-cyan-300">clf_model_best.pth</code>, <code className="text-cyan-300">autoencoder_v2_best.pth</code>) directly with Git LFS at zero cost.
+                </div>
+              </div>
+              <div className="p-3.5 rounded-xl bg-white/[0.03] border border-white/10">
+                <div className="text-xs font-bold text-cyan-400 mb-1 flex items-center gap-1.5">
+                  <CheckCircle2 className="w-3.5 h-3.5" /> Permanent Public HTTPS
+                </div>
+                <div className="text-xs text-slate-400">
+                  Automatically generates an SSL endpoint: <span className="font-mono text-cyan-300 text-[11px]">https://&lt;username&gt;-siteai.hf.space</span>
+                </div>
+              </div>
+            </div>
+
+            <div className="bg-black/60 rounded-xl border border-white/10 p-4 font-mono text-xs text-slate-300 space-y-2">
+              <div className="flex items-center justify-between text-slate-400 pb-2 border-b border-white/10">
+                <span className="flex items-center gap-2"><Terminal className="w-3.5 h-3.5 text-cyan-400" /> Dockerfile for Hugging Face Spaces (Port 7860)</span>
+                <button
+                  onClick={() => handleCopy(`FROM python:3.10-slim\nWORKDIR /app\nRUN apt-get update && apt-get install -y libgl1-mesa-glx libglib2.0-0 git-lfs && rm -rf /var/lib/apt/lists/*\nCOPY requirements.txt .\nRUN pip install --no-cache-dir -r requirements.txt\nCOPY . .\nEXPOSE 7860\nCMD ["uvicorn", "main:app", "--host", "0.0.0.0", "--port", "7860"]`, 'dockerfile')}
+                  className="px-2 py-1 rounded bg-white/5 hover:bg-white/10 text-cyan-400 flex items-center gap-1 transition-colors"
+                >
+                  {copiedSnippet === 'dockerfile' ? <Check className="w-3 h-3 text-emerald-400" /> : <Copy className="w-3 h-3" />}
+                  {copiedSnippet === 'dockerfile' ? 'Copied' : 'Copy'}
+                </button>
+              </div>
+              <pre className="text-cyan-300 overflow-x-auto text-[11px] leading-relaxed">
+{`FROM python:3.10-slim
+WORKDIR /app
+RUN apt-get update && apt-get install -y libgl1-mesa-glx libglib2.0-0 git-lfs && rm -rf /var/lib/apt/lists/*
+COPY requirements.txt .
+RUN pip install --no-cache-dir -r requirements.txt
+COPY . .
+EXPOSE 7860
+CMD ["uvicorn", "main:app", "--host", "0.0.0.0", "--port", "7860"]`}
+              </pre>
+            </div>
+          </div>
+        )}
+
+        {/* Tab 2: Vercel / Cloudflare */}
+        {deployTab === 'vercel' && (
+          <div className="space-y-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+              <div className="p-4 rounded-xl bg-white/[0.03] border border-white/10 space-y-2">
+                <div className="text-sm font-bold text-white flex items-center gap-2">
+                  <Globe className="w-4 h-4 text-cyan-400" /> Vercel Deployment Settings
+                </div>
+                <ul className="text-xs text-slate-400 space-y-1.5 list-disc list-inside">
+                  <li><strong className="text-slate-200">Framework Preset:</strong> Vite</li>
+                  <li><strong className="text-slate-200">Root Directory:</strong> <code className="text-cyan-300">gui</code></li>
+                  <li><strong className="text-slate-200">Build Command:</strong> <code className="text-cyan-300">npm run build</code></li>
+                  <li><strong className="text-slate-200">Output Directory:</strong> <code className="text-cyan-300">dist</code></li>
+                </ul>
+              </div>
+
+              <div className="p-4 rounded-xl bg-white/[0.03] border border-white/10 space-y-2">
+                <div className="text-sm font-bold text-white flex items-center gap-2">
+                  <Lock className="w-4 h-4 text-indigo-400" /> Production Environment Variable
+                </div>
+                <p className="text-xs text-slate-400">
+                  Connect the Vercel frontend to your free Hugging Face backend by adding one secret environment variable in Vercel project settings:
+                </p>
+                <div className="flex items-center justify-between p-2.5 rounded-lg bg-black/60 border border-white/10 font-mono text-[11px]">
+                  <span className="text-cyan-300">VITE_API_URL=https://&lt;your-space&gt;.hf.space</span>
+                  <button
+                    onClick={() => handleCopy(`VITE_API_URL=https://your-user-space.hf.space`, 'env')}
+                    className="p-1 text-slate-400 hover:text-cyan-400"
+                  >
+                    {copiedSnippet === 'env' ? <Check className="w-3.5 h-3.5 text-emerald-400" /> : <Copy className="w-3.5 h-3.5" />}
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Tab 3: Ethical Guardrails */}
+        {deployTab === 'privacy' && (
+          <div className="space-y-4">
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+              <div className="p-4 rounded-xl bg-emerald-500/10 border border-emerald-500/30">
+                <div className="text-xs font-bold text-emerald-300 mb-1 flex items-center gap-1.5">
+                  <Eye className="w-4 h-4" /> 1. Face De-Identification
+                </div>
+                <div className="text-xs text-slate-300 leading-relaxed">
+                  Automatic Gaussian blur applied to worker face regions before passing frames to generative feature extractors (GDPR Art. 9 compliant).
+                </div>
+              </div>
+              <div className="p-4 rounded-xl bg-cyan-500/10 border border-cyan-500/30">
+                <div className="text-xs font-bold text-cyan-300 mb-1 flex items-center gap-1.5">
+                  <Users className="w-4 h-4" /> 2. Non-Punitive Coaching
+                </div>
+                <div className="text-xs text-slate-300 leading-relaxed">
+                  Hazard detections trigger supportive gear advisories on digital site displays rather than worker punitive fines or productivity demerits.
+                </div>
+              </div>
+              <div className="p-4 rounded-xl bg-indigo-500/10 border border-indigo-500/30">
+                <div className="text-xs font-bold text-indigo-300 mb-1 flex items-center gap-1.5">
+                  <ShieldCheck className="w-4 h-4" /> 3. Human-In-The-Loop
+                </div>
+                <div className="text-xs text-slate-300 leading-relaxed">
+                  Safety alerts require human safety supervisor validation; models are assistive copilots, never autonomous disciplinary judges.
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
+      </motion.div>
 
       {/* ═══════════════════════════════════════════════════
            SUMMARY FRAMEWORK TABLE

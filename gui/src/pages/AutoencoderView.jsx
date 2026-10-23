@@ -177,24 +177,24 @@ export default function AutoencoderView() {
                 <h2 className="text-3xl font-black text-slate-800 tracking-tight">Autoencoder &amp; Classification</h2>
                 <span className="badge badge-primary font-bold">PRACT 2 &middot; Optimized V2</span>
               </div>
-              <p className="text-xs text-slate-500 uppercase tracking-widest font-semibold mt-0.5">
+              <p className="text-xs text-cyan-400 font-mono tracking-widest uppercase mt-0.5">
                 Convolutional Feature Representation &bull; Supervised Fine-Tuned Safety Head
               </p>
             </div>
           </motion.div>
-          <motion.p variants={itemVariants} className="text-slate-500 text-sm max-w-3xl leading-relaxed">
-            Our primary objective: learn rich compressed spatial features of construction scenes with <strong className="text-slate-700">AutoencoderV2</strong>, then employ progressive transfer learning to classify construction images and detect PPE compliance across 10 safety categories with high accuracy.
+          <motion.p variants={itemVariants} className="text-slate-400 text-sm max-w-3xl leading-relaxed">
+            Our primary objective: learn rich compressed spatial features of construction scenes with <strong className="text-cyan-300 font-semibold">AutoencoderV2</strong>, then employ progressive transfer learning to classify construction images and detect PPE compliance across 10 safety categories with high accuracy.
           </motion.p>
         </div>
 
         {/* Tab Controls */}
-        <motion.div variants={itemVariants} className="flex p-1 bg-slate-100 rounded-xl border border-slate-200 self-start md:self-end">
+        <motion.div variants={itemVariants} className="flex p-1 bg-white/[0.04] backdrop-blur-md rounded-xl border border-white/10 self-start md:self-end">
           <button
             onClick={() => setActiveTab('classify')}
             className={`flex items-center gap-2 px-4 py-2 rounded-lg text-xs font-bold transition-all ${
               activeTab === 'classify'
-                ? 'bg-white text-primary shadow-sm'
-                : 'text-slate-500 hover:text-slate-800'
+                ? 'bg-gradient-to-r from-cyan-500 to-blue-600 text-white shadow-lg shadow-cyan-500/25'
+                : 'text-slate-400 hover:text-white hover:bg-white/5'
             }`}
           >
             <ShieldCheck className="w-4 h-4" />
@@ -204,8 +204,8 @@ export default function AutoencoderView() {
             onClick={() => setActiveTab('reconstruct')}
             className={`flex items-center gap-2 px-4 py-2 rounded-lg text-xs font-bold transition-all ${
               activeTab === 'reconstruct'
-                ? 'bg-white text-primary shadow-sm'
-                : 'text-slate-500 hover:text-slate-800'
+                ? 'bg-gradient-to-r from-cyan-500 to-blue-600 text-white shadow-lg shadow-cyan-500/25'
+                : 'text-slate-400 hover:text-white hover:bg-white/5'
             }`}
           >
             <Sparkles className="w-4 h-4" />
@@ -215,8 +215,8 @@ export default function AutoencoderView() {
             onClick={() => setActiveTab('architecture')}
             className={`flex items-center gap-2 px-4 py-2 rounded-lg text-xs font-bold transition-all ${
               activeTab === 'architecture'
-                ? 'bg-white text-primary shadow-sm'
-                : 'text-slate-500 hover:text-slate-800'
+                ? 'bg-gradient-to-r from-cyan-500 to-blue-600 text-white shadow-lg shadow-cyan-500/25'
+                : 'text-slate-400 hover:text-white hover:bg-white/5'
             }`}
           >
             <Layers className="w-4 h-4" />
@@ -238,40 +238,40 @@ export default function AutoencoderView() {
         >
           {/* Top Key Metrics Banner */}
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-            <div className="bg-white border border-slate-200 rounded-2xl p-4 shadow-sm flex items-center gap-3">
-              <div className="w-10 h-10 rounded-xl bg-teal-50 border border-teal-200 flex items-center justify-center text-teal-600">
+            <div className="glass-panel p-4 flex items-center gap-3">
+              <div className="w-10 h-10 rounded-xl bg-teal-500/10 border border-teal-500/25 flex items-center justify-center text-teal-400">
                 <CheckCircle2 className="w-5 h-5" />
               </div>
               <div>
-                <div className="text-[11px] font-semibold text-slate-400 uppercase">Test Accuracy</div>
-                <div className="text-xl font-black text-slate-800">86.8%</div>
+                <div className="text-[11px] font-semibold text-slate-400 uppercase tracking-wider">Test Accuracy</div>
+                <div className="text-xl font-black text-white">86.8%</div>
               </div>
             </div>
-            <div className="bg-white border border-slate-200 rounded-2xl p-4 shadow-sm flex items-center gap-3">
-              <div className="w-10 h-10 rounded-xl bg-indigo-50 border border-indigo-200 flex items-center justify-center text-indigo-600">
+            <div className="glass-panel p-4 flex items-center gap-3">
+              <div className="w-10 h-10 rounded-xl bg-indigo-500/10 border border-indigo-500/25 flex items-center justify-center text-indigo-400">
                 <Hash className="w-5 h-5" />
               </div>
               <div>
-                <div className="text-[11px] font-semibold text-slate-400 uppercase">Target Classes</div>
-                <div className="text-xl font-black text-slate-800">10 Categories</div>
+                <div className="text-[11px] font-semibold text-slate-400 uppercase tracking-wider">Target Classes</div>
+                <div className="text-xl font-black text-white">10 Categories</div>
               </div>
             </div>
-            <div className="bg-white border border-slate-200 rounded-2xl p-4 shadow-sm flex items-center gap-3">
-              <div className="w-10 h-10 rounded-xl bg-amber-50 border border-amber-200 flex items-center justify-center text-amber-600">
+            <div className="glass-panel p-4 flex items-center gap-3">
+              <div className="w-10 h-10 rounded-xl bg-amber-500/10 border border-amber-500/25 flex items-center justify-center text-amber-400">
                 <Cpu className="w-5 h-5" />
               </div>
               <div>
-                <div className="text-[11px] font-semibold text-slate-400 uppercase">Feature Pipeline</div>
-                <div className="text-xl font-black text-slate-800">AE Bottleneck + MLP</div>
+                <div className="text-[11px] font-semibold text-slate-400 uppercase tracking-wider">Feature Pipeline</div>
+                <div className="text-xl font-black text-white">AE Bottleneck + MLP</div>
               </div>
             </div>
-            <div className="bg-white border border-slate-200 rounded-2xl p-4 shadow-sm flex items-center gap-3">
-              <div className="w-10 h-10 rounded-xl bg-rose-50 border border-rose-200 flex items-center justify-center text-rose-600">
+            <div className="glass-panel p-4 flex items-center gap-3">
+              <div className="w-10 h-10 rounded-xl bg-rose-500/10 border border-rose-500/25 flex items-center justify-center text-rose-400">
                 <AlertOctagon className="w-5 h-5" />
               </div>
               <div>
-                <div className="text-[11px] font-semibold text-slate-400 uppercase">Violation Detection</div>
-                <div className="text-xl font-black text-slate-800">Real-Time Safe/Hazard</div>
+                <div className="text-[11px] font-semibold text-slate-400 uppercase tracking-wider">Violation Detection</div>
+                <div className="text-xl font-black text-white">Real-Time Safe/Hazard</div>
               </div>
             </div>
           </div>
@@ -302,26 +302,26 @@ export default function AutoencoderView() {
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
             {/* Input & Upload Column (5 cols) */}
             <div className="lg:col-span-5 space-y-6">
-              <div className="bg-white border border-slate-200 rounded-2xl p-6 shadow-sm">
+              <div className="glass-panel p-6">
                 <div className="flex items-center justify-between mb-4">
                   <div className="flex items-center gap-2">
-                    <div className="w-7 h-7 rounded-lg bg-primary/10 flex items-center justify-center text-primary font-bold text-xs">
+                    <div className="w-7 h-7 rounded-lg bg-cyan-500/10 border border-cyan-500/30 flex items-center justify-center text-cyan-400 font-bold text-xs">
                       1
                     </div>
-                    <h3 className="font-bold text-slate-800 text-sm">Upload Construction Crop / Image</h3>
+                    <h3 className="font-bold text-white text-sm">Upload Construction Crop / Image</h3>
                   </div>
-                  <span className="text-[11px] text-slate-400 font-medium">128&times;128 Auto-Scale</span>
+                  <span className="text-[11px] text-cyan-400/80 font-mono">128&times;128 Auto-Scale</span>
                 </div>
 
-                <label className="border-2 border-dashed border-slate-300 hover:border-primary/60 rounded-2xl p-6 h-64 flex flex-col items-center justify-center cursor-pointer transition-colors relative overflow-hidden group bg-slate-50/50">
+                <label className="border-2 border-dashed border-white/15 hover:border-cyan-400/60 rounded-2xl p-6 h-64 flex flex-col items-center justify-center cursor-pointer transition-colors relative overflow-hidden group bg-white/[0.02]">
                   {previewUrl ? (
                     <img src={previewUrl} alt="Selected Input" className="w-full h-full object-contain rounded-lg" />
                   ) : (
                     <div className="text-center">
-                      <div className="w-12 h-12 rounded-xl bg-white border border-slate-200 flex items-center justify-center mx-auto mb-3 shadow-sm group-hover:scale-105 transition-transform text-slate-400 group-hover:text-primary">
+                      <div className="w-12 h-12 rounded-xl bg-white/5 border border-white/10 flex items-center justify-center mx-auto mb-3 shadow-sm group-hover:scale-105 transition-transform text-slate-400 group-hover:text-cyan-400">
                         <Upload className="w-6 h-6" />
                       </div>
-                      <p className="text-xs font-semibold text-slate-700">Click to select an image</p>
+                      <p className="text-xs font-semibold text-slate-200">Click to select an image</p>
                       <p className="text-[11px] text-slate-400 mt-1">Or drag and drop worker / equipment crop</p>
                     </div>
                   )}
@@ -331,7 +331,7 @@ export default function AutoencoderView() {
                 <button
                   onClick={handleRunClassification}
                   disabled={!selectedFile || isClassifying}
-                  className="w-full mt-4 py-3 px-4 rounded-xl bg-primary text-white font-bold text-sm shadow-md shadow-primary/20 hover:bg-primary/95 transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+                  className="w-full mt-4 py-3 px-4 rounded-xl bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-400 hover:to-blue-500 text-white font-bold text-sm shadow-lg shadow-cyan-500/25 transition-all disabled:opacity-40 disabled:cursor-not-allowed flex items-center justify-center gap-2"
                 >
                   {isClassifying ? (
                     <>
@@ -348,16 +348,16 @@ export default function AutoencoderView() {
               </div>
 
               {/* Dataset Quick Classes Reference */}
-              <div className="bg-white border border-slate-200 rounded-2xl p-5 shadow-sm">
+              <div className="glass-panel p-5">
                 <h4 className="text-xs font-bold uppercase tracking-wider text-slate-400 mb-3 flex items-center justify-between">
                   <span>Class Taxonomy (10 Classes)</span>
-                  <span className="text-[10px] text-emerald-600 bg-emerald-50 px-2 py-0.5 rounded-full border border-emerald-200">Roboflow CSS</span>
+                  <span className="text-[10px] text-emerald-400 bg-emerald-500/10 px-2 py-0.5 rounded-full border border-emerald-500/30 font-mono">Roboflow CSS</span>
                 </h4>
                 <div className="flex flex-wrap gap-1.5">
                   {Object.entries(CLASS_META).map(([name, meta]) => (
                     <span
                       key={name}
-                      className="text-[11px] font-semibold px-2.5 py-1 rounded-lg border"
+                      className="text-[11px] font-semibold px-2.5 py-1 rounded-lg border backdrop-blur-sm"
                       style={{ color: meta.color, background: meta.bg, borderColor: meta.border }}
                     >
                       {name}
@@ -369,22 +369,22 @@ export default function AutoencoderView() {
 
             {/* Results & Inspection Column (7 cols) */}
             <div className="lg:col-span-7 space-y-6">
-              <div className="bg-white border border-slate-200 rounded-2xl p-6 shadow-sm min-h-[460px] flex flex-col justify-between">
+              <div className="glass-panel p-6 min-h-[460px] flex flex-col justify-between">
                 <div>
-                  <div className="flex items-center justify-between mb-4 pb-3 border-b border-slate-100">
+                  <div className="flex items-center justify-between mb-4 pb-3 border-b border-white/10">
                     <div className="flex items-center gap-2">
-                      <div className="w-7 h-7 rounded-lg bg-teal-500/10 flex items-center justify-center text-teal-600 font-bold text-xs">
+                      <div className="w-7 h-7 rounded-lg bg-teal-500/10 border border-teal-500/30 flex items-center justify-center text-teal-400 font-bold text-xs">
                         2
                       </div>
-                      <h3 className="font-bold text-slate-800 text-sm">Classification &amp; Digital Twin Result</h3>
+                      <h3 className="font-bold text-white text-sm">Classification &amp; Digital Twin Result</h3>
                     </div>
                     {classificationResult && (
                       <span className={`text-xs font-bold px-3 py-1 rounded-full border ${
                         classificationResult.safety_status === 'SAFE'
-                          ? 'bg-emerald-50 text-emerald-600 border-emerald-200'
+                          ? 'bg-emerald-500/15 text-emerald-300 border-emerald-500/40'
                           : classificationResult.safety_status === 'VIOLATION'
-                          ? 'bg-rose-50 text-rose-600 border-rose-200'
-                          : 'bg-amber-50 text-amber-600 border-amber-200'
+                          ? 'bg-rose-500/15 text-rose-300 border-rose-500/40'
+                          : 'bg-amber-500/15 text-amber-300 border-amber-500/40'
                       }`}>
                         {classificationResult.safety_status}
                       </span>
@@ -394,20 +394,20 @@ export default function AutoencoderView() {
                   {classificationResult ? (
                     <div className="space-y-6">
                       {/* Prediction Highlight Banner */}
-                      <div className="p-5 rounded-2xl border flex flex-col sm:flex-row items-center justify-between gap-4"
+                      <div className="p-5 rounded-2xl border flex flex-col sm:flex-row items-center justify-between gap-4 backdrop-blur-md"
                         style={{
-                          background: CLASS_META[classificationResult.predicted_class]?.bg || 'rgba(0,49,83,0.05)',
-                          borderColor: CLASS_META[classificationResult.predicted_class]?.border || 'rgba(0,49,83,0.15)'
+                          background: CLASS_META[classificationResult.predicted_class]?.bg || 'rgba(15,23,42,0.6)',
+                          borderColor: CLASS_META[classificationResult.predicted_class]?.border || 'rgba(255,255,255,0.1)'
                         }}
                       >
                         <div>
-                          <div className="text-xs font-bold uppercase tracking-wider text-slate-500">Predicted Class</div>
-                          <div className="text-2xl font-black mt-0.5" style={{ color: CLASS_META[classificationResult.predicted_class]?.color || '#003153' }}>
+                          <div className="text-xs font-bold uppercase tracking-wider text-slate-400">Predicted Class</div>
+                          <div className="text-2xl font-black mt-0.5 tracking-tight" style={{ color: CLASS_META[classificationResult.predicted_class]?.color || '#00F0FF' }}>
                             {classificationResult.predicted_class}
                           </div>
-                          <div className="flex flex-wrap items-center gap-1.5 mt-1 text-xs text-slate-500">
+                          <div className="flex flex-wrap items-center gap-1.5 mt-1 text-xs text-slate-400">
                             <span>Status:</span>
-                            <span className="font-bold text-slate-700 bg-white/80 px-2 py-0.5 rounded-md border border-slate-200">
+                            <span className="font-bold text-slate-200 bg-white/10 px-2 py-0.5 rounded-md border border-white/10">
                               {classificationResult.safety_status}
                             </span>
                             <span>&bull;</span>
@@ -415,26 +415,26 @@ export default function AutoencoderView() {
                           </div>
                         </div>
                         <div className="text-center sm:text-right">
-                          <div className="text-xs font-bold uppercase tracking-wider text-slate-500">Confidence</div>
-                          <div className="text-3xl font-black text-slate-800">
+                          <div className="text-xs font-bold uppercase tracking-wider text-slate-400">Confidence</div>
+                          <div className="text-3xl font-black text-white">
                             {classificationResult.confidence_percentage}%
                           </div>
-                          <div className="text-[10px] text-slate-400 mt-0.5">Softmax Probability</div>
+                          <div className="text-[10px] text-cyan-400 font-mono mt-0.5">Softmax Probability</div>
                         </div>
                       </div>
 
                       {/* Multi-object Wide Scene Insight */}
                       {classificationResult.is_wide_scene && (
-                        <div className="p-3.5 rounded-xl bg-blue-50/70 border border-blue-200 text-xs text-blue-900 flex items-start gap-2.5 shadow-sm">
-                          <div className="w-5 h-5 rounded-md bg-blue-100 flex items-center justify-center text-blue-700 flex-shrink-0 mt-0.5">
+                        <div className="p-3.5 rounded-xl bg-cyan-950/40 border border-cyan-500/30 text-xs text-cyan-200 flex items-start gap-2.5 shadow-sm">
+                          <div className="w-5 h-5 rounded-md bg-cyan-500/20 flex items-center justify-center text-cyan-300 flex-shrink-0 mt-0.5">
                             <Layers className="w-3.5 h-3.5" />
                           </div>
                           <div>
-                            <div className="font-bold text-blue-900">Multi-Object Site Scene Detected</div>
-                            <p className="mt-0.5 text-blue-800 leading-relaxed text-[11px]">
+                            <div className="font-bold text-cyan-300">Multi-Object Site Scene Detected</div>
+                            <p className="mt-0.5 text-cyan-100 leading-relaxed text-[11px]">
                               {classificationResult.scene_summary}
                             </p>
-                            <p className="text-[10px] text-blue-600 mt-1">
+                            <p className="text-[10px] text-cyan-400 mt-1">
                               <em>Note: The Autoencoder classifier was trained on individual object crops. In wide panoramic photos with multiple workers, gear, and scaffolding, activations are shared across all visible elements. Click any sample crop below to test single-item 85%+ confidence!</em>
                             </p>
                           </div>
@@ -443,18 +443,18 @@ export default function AutoencoderView() {
 
                       {/* Side-by-Side: Original Crop vs Autoencoder Reconstruction */}
                       <div className="grid grid-cols-2 gap-4">
-                        <div className="p-3 bg-slate-50 rounded-xl border border-slate-100 text-center">
-                          <div className="text-[11px] font-bold text-slate-500 mb-2">Input Crop</div>
-                          <div className="w-28 h-28 mx-auto rounded-lg overflow-hidden border border-slate-200 bg-white">
+                        <div className="p-3 bg-black/40 rounded-xl border border-white/10 text-center">
+                          <div className="text-[11px] font-bold text-slate-400 mb-2">Input Crop</div>
+                          <div className="w-28 h-28 mx-auto rounded-lg overflow-hidden border border-white/15 bg-black/50">
                             <img src={previewUrl} alt="Input Crop" className="w-full h-full object-contain" />
                           </div>
                         </div>
-                        <div className="p-3 bg-slate-50 rounded-xl border border-slate-100 text-center">
-                          <div className="text-[11px] font-bold text-slate-500 mb-2">Autoencoder Reconstruction</div>
-                          <div className="w-28 h-28 mx-auto rounded-lg overflow-hidden border border-slate-200 bg-white">
+                        <div className="p-3 bg-black/40 rounded-xl border border-white/10 text-center">
+                          <div className="text-[11px] font-bold text-slate-400 mb-2">Autoencoder Reconstruction</div>
+                          <div className="w-28 h-28 mx-auto rounded-lg overflow-hidden border border-white/15 bg-black/50">
                             <img src={classificationResult.reconstructed_image} alt="Reconstructed" className="w-full h-full object-contain" />
                           </div>
-                          <div className="text-[10px] text-slate-400 mt-1">MSE Error: {classificationResult.mse_loss}</div>
+                          <div className="text-[10px] text-cyan-400 font-mono mt-1">MSE Error: {classificationResult.mse_loss}</div>
                         </div>
                       </div>
 
@@ -465,15 +465,15 @@ export default function AutoencoderView() {
                           {classificationResult.probabilities.slice(0, 5).map((p, idx) => (
                             <div key={idx} className="space-y-1">
                               <div className="flex justify-between text-xs font-semibold">
-                                <span className="text-slate-700">{p.class_name}</span>
-                                <span className="text-slate-500">{(p.probability * 100).toFixed(1)}%</span>
+                                <span className="text-slate-300">{p.class_name}</span>
+                                <span className="text-slate-400 font-mono">{(p.probability * 100).toFixed(1)}%</span>
                               </div>
-                              <div className="w-full h-2 bg-slate-100 rounded-full overflow-hidden">
+                              <div className="w-full h-2 bg-white/5 rounded-full overflow-hidden border border-white/5">
                                 <div
-                                  className="h-full rounded-full transition-all duration-500"
+                                  className="h-full rounded-full transition-all duration-500 shadow-sm"
                                   style={{
                                     width: `${p.probability * 100}%`,
-                                    backgroundColor: CLASS_META[p.class_name]?.color || '#003153'
+                                    backgroundColor: CLASS_META[p.class_name]?.color || '#00F0FF'
                                   }}
                                 />
                               </div>
@@ -483,19 +483,19 @@ export default function AutoencoderView() {
                       </div>
                     </div>
                   ) : (
-                    <div className="flex flex-col items-center justify-center h-80 text-center text-slate-400">
-                      <ShieldCheck className="w-12 h-12 mb-3 stroke-[1.5] text-slate-300" />
-                      <p className="font-semibold text-slate-600 text-sm">Awaiting Image for Safety Classification</p>
-                      <p className="text-xs text-slate-400 max-w-xs mt-1">
+                    <div className="flex flex-col items-center justify-center h-80 text-center text-slate-500">
+                      <ShieldCheck className="w-12 h-12 mb-3 stroke-[1.5] text-slate-600" />
+                      <p className="font-semibold text-slate-300 text-sm">Awaiting Image for Safety Classification</p>
+                      <p className="text-xs text-slate-500 max-w-xs mt-1">
                         Upload an image on the left or select a sample from the live dataset evaluator below.
                       </p>
                     </div>
                   )}
                 </div>
 
-                <div className="pt-3 border-t border-slate-100 flex items-center justify-between text-[11px] text-slate-400">
-                  <span>Model: <strong>EncoderClassifier (Fine-Tuned)</strong></span>
-                  <span>Weights: <strong className="text-emerald-600">clf_model_best.pth</strong></span>
+                <div className="pt-3 border-t border-white/10 flex items-center justify-between text-[11px] text-slate-400">
+                  <span>Model: <strong className="text-slate-200">EncoderClassifier (Fine-Tuned)</strong></span>
+                  <span>Weights: <strong className="text-emerald-400 font-mono">clf_model_best.pth</strong></span>
                 </div>
               </div>
             </div>
@@ -504,16 +504,16 @@ export default function AutoencoderView() {
           {/* ================================================================ */}
           {/* LIVE TEST DATA EVALUATOR (TEST DATA WITH GOOD ACCURACY)           */}
           {/* ================================================================ */}
-          <div className="bg-white border border-slate-200 rounded-2xl p-6 shadow-sm space-y-5">
-            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-4 border-b border-slate-100">
+          <div className="glass-panel p-6 space-y-5">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-4 border-b border-white/10">
               <div>
                 <div className="flex items-center gap-2">
-                  <h3 className="font-bold text-slate-800 text-base">Live Dataset Batch Evaluator</h3>
-                  <span className="text-[10px] font-bold bg-teal-50 text-teal-700 border border-teal-200 px-2 py-0.5 rounded-full">
+                  <h3 className="font-bold text-white text-base">Live Dataset Batch Evaluator</h3>
+                  <span className="text-[10px] font-bold bg-cyan-500/10 text-cyan-400 border border-cyan-500/30 px-2 py-0.5 rounded-full font-mono">
                     Real Test Splits
                   </span>
                 </div>
-                <p className="text-xs text-slate-500 mt-0.5">
+                <p className="text-xs text-slate-400 mt-0.5">
                   Evaluate ground-truth test annotations from Roboflow dataset with the executed trained model.
                 </p>
               </div>
@@ -522,16 +522,16 @@ export default function AutoencoderView() {
                 {testSamples && (
                   <div className="text-right">
                     <span className="text-xs text-slate-400 font-medium">Batch Accuracy: </span>
-                    <strong className="text-sm font-black text-emerald-600">{testSamples.accuracy_percentage}%</strong>
+                    <strong className="text-sm font-black text-emerald-400 font-mono">{testSamples.accuracy_percentage}%</strong>
                     <span className="text-xs text-slate-400 ml-1">({testSamples.correct_count}/{testSamples.total_tested})</span>
                   </div>
                 )}
                 <button
                   onClick={fetchTestSamples}
                   disabled={isLoadingSamples}
-                  className="px-3.5 py-2 rounded-xl bg-slate-100 hover:bg-slate-200 border border-slate-200 text-slate-700 text-xs font-bold transition-all flex items-center gap-1.5"
+                  className="px-3.5 py-2 rounded-xl bg-white/5 hover:bg-white/10 border border-white/10 text-slate-200 text-xs font-bold transition-all flex items-center gap-1.5"
                 >
-                  <RefreshCw className={`w-3.5 h-3.5 ${isLoadingSamples ? 'animate-spin' : ''}`} />
+                  <RefreshCw className={`w-3.5 h-3.5 text-cyan-400 ${isLoadingSamples ? 'animate-spin' : ''}`} />
                   Refresh Test Batch
                 </button>
               </div>
@@ -546,25 +546,25 @@ export default function AutoencoderView() {
                     <div
                       key={sample.sample_id}
                       onClick={() => loadSampleIntoInspector(sample)}
-                      className={`cursor-pointer rounded-xl p-2.5 border transition-all text-center relative group ${
+                      className={`cursor-pointer rounded-xl p-2.5 border transition-all text-center relative group backdrop-blur-sm ${
                         isSelected
-                          ? 'border-primary ring-2 ring-primary/20 bg-primary/5'
-                          : 'border-slate-200 hover:border-slate-300 bg-slate-50/50'
+                          ? 'border-cyan-400 ring-2 ring-cyan-400/30 bg-cyan-500/10'
+                          : 'border-white/10 hover:border-cyan-400/40 bg-white/[0.02] hover:bg-white/[0.05]'
                       }`}
                     >
-                      <div className="w-16 h-16 mx-auto rounded-lg overflow-hidden border border-slate-200 bg-white mb-2">
+                      <div className="w-16 h-16 mx-auto rounded-lg overflow-hidden border border-white/10 bg-black/40 mb-2">
                         <img src={sample.thumbnail} alt={`Crop #${sample.sample_id}`} className="w-full h-full object-cover" />
                       </div>
-                      <div className="text-[11px] font-bold text-slate-700 truncate">{sample.ground_truth_class}</div>
+                      <div className="text-[11px] font-bold text-slate-200 truncate">{sample.ground_truth_class}</div>
                       <div className="text-[10px] text-slate-400 truncate">Pred: {sample.predicted_class}</div>
                       
                       <div className="mt-1.5">
                         {sample.is_correct ? (
-                          <span className="inline-flex items-center gap-0.5 text-[9px] font-bold text-emerald-600 bg-emerald-50 px-1.5 py-0.5 rounded-full border border-emerald-200">
+                          <span className="inline-flex items-center gap-0.5 text-[9px] font-bold text-emerald-400 bg-emerald-500/10 px-1.5 py-0.5 rounded-full border border-emerald-500/30">
                             <CheckCircle2 className="w-2.5 h-2.5" /> Match
                           </span>
                         ) : (
-                          <span className="inline-flex items-center gap-0.5 text-[9px] font-bold text-rose-600 bg-rose-50 px-1.5 py-0.5 rounded-full border border-rose-200">
+                          <span className="inline-flex items-center gap-0.5 text-[9px] font-bold text-rose-400 bg-rose-500/10 px-1.5 py-0.5 rounded-full border border-rose-500/30">
                             <XCircle className="w-2.5 h-2.5" /> Mismatch
                           </span>
                         )}
@@ -574,30 +574,30 @@ export default function AutoencoderView() {
                 })}
               </div>
             ) : (
-              <div className="text-center py-8 text-slate-400 text-xs">
+              <div className="text-center py-8 text-slate-500 text-xs">
                 {isLoadingSamples ? 'Loading real test samples from dataset...' : 'Test samples not loaded yet. Make sure backend is running.'}
               </div>
             )}
 
             {/* Selected Sample Detail Callout */}
             {selectedSample && (
-              <div className="p-4 rounded-xl bg-slate-50 border border-slate-200 flex flex-col sm:flex-row items-center justify-between gap-4">
+              <div className="p-4 rounded-xl bg-white/[0.03] border border-white/10 flex flex-col sm:flex-row items-center justify-between gap-4">
                 <div className="flex items-center gap-4">
-                  <div className="w-16 h-16 rounded-xl overflow-hidden border border-slate-300 bg-white shadow-sm flex-shrink-0">
+                  <div className="w-16 h-16 rounded-xl overflow-hidden border border-white/15 bg-black/40 shadow-sm flex-shrink-0">
                     <img src={selectedSample.thumbnail} alt="Selected" className="w-full h-full object-cover" />
                   </div>
                   <div>
                     <div className="flex items-center gap-2">
                       <span className="text-xs font-bold text-slate-400">Sample #{selectedSample.sample_id}</span>
-                      <span className="text-xs text-slate-500 font-mono">({selectedSample.filename})</span>
+                      <span className="text-xs text-cyan-400 font-mono">({selectedSample.filename})</span>
                     </div>
-                    <div className="text-sm font-bold text-slate-800 mt-0.5">
-                      Ground Truth: <span className="text-primary font-black">{selectedSample.ground_truth_class}</span>
-                      <span className="mx-2 text-slate-300">&bull;</span>
-                      Model Prediction: <span className="text-slate-800 font-black">{selectedSample.predicted_class}</span>
+                    <div className="text-sm font-bold text-white mt-0.5">
+                      Ground Truth: <span className="text-cyan-400 font-black">{selectedSample.ground_truth_class}</span>
+                      <span className="mx-2 text-slate-500">&bull;</span>
+                      Model Prediction: <span className="text-indigo-400 font-black">{selectedSample.predicted_class}</span>
                     </div>
-                    <div className="text-xs text-slate-500 mt-0.5">
-                      Confidence: <strong className="text-slate-700">{selectedSample.confidence_percentage}%</strong> &bull; Safety Status: <strong className="text-slate-700">{selectedSample.safety_status}</strong>
+                    <div className="text-xs text-slate-400 mt-0.5">
+                      Confidence: <strong className="text-white font-mono">{selectedSample.confidence_percentage}%</strong> &bull; Safety Status: <strong className="text-slate-200">{selectedSample.safety_status}</strong>
                     </div>
                   </div>
                 </div>
@@ -605,8 +605,8 @@ export default function AutoencoderView() {
                 <div className="flex items-center gap-2 flex-shrink-0">
                   <span className={`px-3 py-1.5 rounded-lg text-xs font-bold border ${
                     selectedSample.is_correct
-                      ? 'bg-emerald-50 text-emerald-700 border-emerald-300'
-                      : 'bg-rose-50 text-rose-700 border-rose-300'
+                      ? 'bg-emerald-500/15 text-emerald-300 border-emerald-500/40'
+                      : 'bg-rose-500/15 text-rose-300 border-rose-500/40'
                   }`}>
                     {selectedSample.is_correct ? 'Prediction Verified Correct' : 'Misclassified Category'}
                   </span>
@@ -662,15 +662,15 @@ export default function AutoencoderView() {
           />
 
           {/* Reconstruction Interactive Panel */}
-          <div className="bg-white border border-slate-200 rounded-2xl p-6 shadow-sm">
+          <div className="glass-panel p-6">
             <div className="flex items-center justify-between mb-4">
               <div>
-                <h3 className="font-bold text-slate-800 text-base">Full Scene Digital Twin Reconstruction</h3>
-                <p className="text-xs text-slate-500 mt-0.5">
+                <h3 className="font-bold text-white text-base">Full Scene Digital Twin Reconstruction</h3>
+                <p className="text-xs text-slate-400 mt-0.5">
                   Execute the trained Autoencoder V2 to compress 128&times;128 construction site scenes into latent representations and reconstruct the scene.
                 </p>
               </div>
-              <span className="text-xs font-bold px-3 py-1 bg-primary/10 text-primary border border-primary/20 rounded-full">
+              <span className="text-xs font-bold px-3 py-1 bg-cyan-500/10 text-cyan-400 border border-cyan-500/30 rounded-full font-mono">
                 U-Net Architecture &middot; Skip Connections
               </span>
             </div>
@@ -679,13 +679,13 @@ export default function AutoencoderView() {
               {/* Input Side */}
               <div className="space-y-3">
                 <span className="text-xs font-bold uppercase tracking-wider text-slate-400">Original Input (x)</span>
-                <label className="border-2 border-dashed border-slate-300 hover:border-primary/60 rounded-2xl p-6 h-72 flex flex-col items-center justify-center cursor-pointer transition-colors relative overflow-hidden bg-slate-50/50">
+                <label className="border-2 border-dashed border-white/15 hover:border-cyan-400/60 rounded-2xl p-6 h-72 flex flex-col items-center justify-center cursor-pointer transition-colors relative overflow-hidden bg-white/[0.02]">
                   {reconPreviewUrl ? (
                     <img src={reconPreviewUrl} alt="Recon Preview" className="w-full h-full object-contain rounded-lg" />
                   ) : (
                     <div className="text-center">
-                      <Upload className="w-8 h-8 mx-auto text-slate-400 mb-2" />
-                      <p className="text-xs font-bold text-slate-700">Click to upload construction site photo</p>
+                      <Upload className="w-8 h-8 mx-auto text-slate-500 mb-2" />
+                      <p className="text-xs font-bold text-slate-200">Click to upload construction site photo</p>
                       <p className="text-[11px] text-slate-400 mt-0.5">JPG / PNG / WebP</p>
                     </div>
                   )}
@@ -696,12 +696,12 @@ export default function AutoencoderView() {
               {/* Output Side */}
               <div className="space-y-3">
                 <span className="text-xs font-bold uppercase tracking-wider text-slate-400">Reconstructed Output (&hat;x)</span>
-                <div className="border border-slate-200 rounded-2xl p-6 h-72 flex flex-col items-center justify-center bg-slate-900/5 relative overflow-hidden">
+                <div className="border border-white/10 rounded-2xl p-6 h-72 flex flex-col items-center justify-center bg-black/40 relative overflow-hidden">
                   {reconstructedUrl ? (
                     <img src={reconstructedUrl} alt="Reconstructed Scene" className="w-full h-full object-contain rounded-lg" />
                   ) : (
-                    <div className="text-center text-slate-400 text-xs font-medium">
-                      <Box className="w-8 h-8 mx-auto mb-2 opacity-40" />
+                    <div className="text-center text-slate-500 text-xs font-medium">
+                      <Box className="w-8 h-8 mx-auto mb-2 opacity-40 text-cyan-400" />
                       Awaiting Input Image
                     </div>
                   )}
@@ -710,26 +710,26 @@ export default function AutoencoderView() {
             </div>
 
             {/* Action & Metrics Footer */}
-            <div className="mt-6 pt-5 border-t border-slate-100 flex flex-col sm:flex-row items-center justify-between gap-4">
-              <div className="flex items-center gap-6 text-xs text-slate-600">
+            <div className="mt-6 pt-5 border-t border-white/10 flex flex-col sm:flex-row items-center justify-between gap-4">
+              <div className="flex items-center gap-6 text-xs text-slate-400">
                 <div>
-                  <span className="text-slate-400">Reconstruction MSE: </span>
-                  <strong className="text-slate-800">{reconMetrics ? reconMetrics.mse : '0.000103'}</strong>
+                  <span className="text-slate-500">Reconstruction MSE: </span>
+                  <strong className="text-cyan-400 font-mono">{reconMetrics ? reconMetrics.mse : '0.000103'}</strong>
                 </div>
                 <div>
-                  <span className="text-slate-400">Estimated SSIM: </span>
-                  <strong className="text-emerald-600">{reconMetrics ? (reconMetrics.ssim * 100).toFixed(1) + '%' : '98.5%'}</strong>
+                  <span className="text-slate-500">Estimated SSIM: </span>
+                  <strong className="text-emerald-400 font-mono">{reconMetrics ? (reconMetrics.ssim * 100).toFixed(1) + '%' : '98.5%'}</strong>
                 </div>
                 <div>
-                  <span className="text-slate-400">Weights File: </span>
-                  <strong className="text-slate-800">autoencoder_v2_best.pth</strong>
+                  <span className="text-slate-500">Weights File: </span>
+                  <strong className="text-slate-300 font-mono">autoencoder_v2_best.pth</strong>
                 </div>
               </div>
 
               <button
                 onClick={handleRunReconstruction}
                 disabled={!reconFile || isReconstructing}
-                className="py-2.5 px-6 rounded-xl bg-primary text-white font-bold text-sm shadow-md shadow-primary/20 hover:bg-primary/95 transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
+                className="py-2.5 px-6 rounded-xl bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-400 hover:to-blue-500 text-white font-bold text-sm shadow-lg shadow-cyan-500/25 transition-all disabled:opacity-40 disabled:cursor-not-allowed flex items-center gap-2"
               >
                 {isReconstructing ? (
                   <>
@@ -760,106 +760,106 @@ export default function AutoencoderView() {
           className="space-y-8"
         >
           {/* U-Net Network Architecture Diagram */}
-          <div className="bg-white border border-slate-200 rounded-2xl p-6 shadow-sm">
-            <h3 className="font-bold text-slate-800 text-sm mb-4 flex items-center gap-2">
-              <Layers className="w-4 h-4 text-primary" />
+          <div className="glass-panel p-6">
+            <h3 className="font-bold text-white text-sm mb-4 flex items-center gap-2">
+              <Layers className="w-4 h-4 text-cyan-400" />
               Autoencoder V2 Hierarchical Architecture &amp; Spatial Skips
             </h3>
 
-            <div className="flex items-center justify-between flex-wrap gap-3 py-6 px-4 bg-slate-50/70 rounded-2xl border border-slate-100 overflow-x-auto">
-              <div className="text-center p-3 rounded-xl bg-white border border-slate-200 shadow-sm min-w-[100px]">
+            <div className="flex items-center justify-between flex-wrap gap-3 py-6 px-4 bg-black/40 rounded-2xl border border-white/10 overflow-x-auto">
+              <div className="text-center p-3 rounded-xl bg-white/[0.03] border border-white/10 shadow-sm min-w-[100px]">
                 <div className="text-[10px] text-slate-400 uppercase font-bold">Input</div>
-                <div className="text-sm font-black text-slate-800">3&times;128&times;128</div>
-                <div className="text-[10px] text-slate-500 mt-1">RGB Scene</div>
+                <div className="text-sm font-black text-white font-mono">3&times;128&times;128</div>
+                <div className="text-[10px] text-slate-400 mt-1">RGB Scene</div>
               </div>
-              <span className="text-slate-400 font-bold">&rarr;</span>
+              <span className="text-cyan-400 font-bold">&rarr;</span>
 
-              <div className="text-center p-3 rounded-xl bg-blue-50 border border-blue-200 min-w-[110px]">
-                <div className="text-[10px] text-blue-600 uppercase font-bold">Enc 1</div>
-                <div className="text-sm font-black text-slate-800">32&times;128&times;128</div>
-                <div className="text-[10px] text-slate-500 mt-1">ConvBlock</div>
+              <div className="text-center p-3 rounded-xl bg-cyan-950/40 border border-cyan-500/30 min-w-[110px]">
+                <div className="text-[10px] text-cyan-400 uppercase font-bold">Enc 1</div>
+                <div className="text-sm font-black text-cyan-200 font-mono">32&times;128&times;128</div>
+                <div className="text-[10px] text-cyan-300/80 mt-1">ConvBlock</div>
               </div>
-              <span className="text-slate-400 font-bold">&rarr;</span>
+              <span className="text-cyan-400 font-bold">&rarr;</span>
 
-              <div className="text-center p-3 rounded-xl bg-blue-50 border border-blue-200 min-w-[110px]">
-                <div className="text-[10px] text-blue-600 uppercase font-bold">Enc 2</div>
-                <div className="text-sm font-black text-slate-800">64&times;64&times;64</div>
-                <div className="text-[10px] text-slate-500 mt-1">Pool &plus; Conv</div>
+              <div className="text-center p-3 rounded-xl bg-cyan-950/40 border border-cyan-500/30 min-w-[110px]">
+                <div className="text-[10px] text-cyan-400 uppercase font-bold">Enc 2</div>
+                <div className="text-sm font-black text-cyan-200 font-mono">64&times;64&times;64</div>
+                <div className="text-[10px] text-cyan-300/80 mt-1">Pool &plus; Conv</div>
               </div>
-              <span className="text-slate-400 font-bold">&rarr;</span>
+              <span className="text-cyan-400 font-bold">&rarr;</span>
 
-              <div className="text-center p-3 rounded-xl bg-blue-50 border border-blue-200 min-w-[110px]">
-                <div className="text-[10px] text-blue-600 uppercase font-bold">Enc 3 &amp; 4</div>
-                <div className="text-sm font-black text-slate-800">128&times;16&times;16</div>
-                <div className="text-[10px] text-slate-500 mt-1">Deep Visuals</div>
+              <div className="text-center p-3 rounded-xl bg-cyan-950/40 border border-cyan-500/30 min-w-[110px]">
+                <div className="text-[10px] text-cyan-400 uppercase font-bold">Enc 3 &amp; 4</div>
+                <div className="text-sm font-black text-cyan-200 font-mono">128&times;16&times;16</div>
+                <div className="text-[10px] text-cyan-300/80 mt-1">Deep Visuals</div>
               </div>
-              <span className="text-slate-400 font-bold">&rarr;</span>
+              <span className="text-indigo-400 font-bold">&rarr;</span>
 
-              <div className="text-center p-3 rounded-xl bg-indigo-100 border border-indigo-300 shadow-md min-w-[120px]">
-                <div className="text-[10px] text-indigo-700 uppercase font-black">Bottleneck z</div>
-                <div className="text-sm font-black text-indigo-900">128&times;8&times;8</div>
-                <div className="text-[10px] text-indigo-700 mt-1">8,192 features</div>
+              <div className="text-center p-3 rounded-xl bg-indigo-950/80 border border-indigo-500/40 shadow-lg shadow-indigo-500/20 min-w-[120px]">
+                <div className="text-[10px] text-indigo-300 uppercase font-black">Bottleneck z</div>
+                <div className="text-sm font-black text-indigo-200 font-mono">128&times;8&times;8</div>
+                <div className="text-[10px] text-indigo-300 mt-1 font-mono">8,192 features</div>
               </div>
-              <span className="text-slate-400 font-bold">&rarr;</span>
+              <span className="text-teal-400 font-bold">&rarr;</span>
 
-              <div className="text-center p-3 rounded-xl bg-teal-50 border border-teal-200 min-w-[110px]">
-                <div className="text-[10px] text-teal-600 uppercase font-bold">Decoder</div>
-                <div className="text-sm font-black text-slate-800">ConvTranspose</div>
-                <div className="text-[10px] text-teal-600 mt-1">Skip Concats</div>
+              <div className="text-center p-3 rounded-xl bg-teal-950/40 border border-teal-500/30 min-w-[110px]">
+                <div className="text-[10px] text-teal-400 uppercase font-bold">Decoder</div>
+                <div className="text-sm font-black text-teal-200 font-mono">ConvTranspose</div>
+                <div className="text-[10px] text-teal-300/80 mt-1">Skip Concats</div>
               </div>
-              <span className="text-slate-400 font-bold">&rarr;</span>
+              <span className="text-cyan-400 font-bold">&rarr;</span>
 
-              <div className="text-center p-3 rounded-xl bg-white border border-slate-200 shadow-sm min-w-[100px]">
+              <div className="text-center p-3 rounded-xl bg-white/[0.03] border border-white/10 shadow-sm min-w-[100px]">
                 <div className="text-[10px] text-slate-400 uppercase font-bold">Output</div>
-                <div className="text-sm font-black text-slate-800">3&times;128&times;128</div>
-                <div className="text-[10px] text-slate-500 mt-1">Sigmoid Recon</div>
+                <div className="text-sm font-black text-white font-mono">3&times;128&times;128</div>
+                <div className="text-[10px] text-slate-400 mt-1">Sigmoid Recon</div>
               </div>
             </div>
           </div>
 
           {/* Transfer Learning 3-Phase Strategy */}
-          <div className="bg-white border border-slate-200 rounded-2xl p-6 shadow-sm">
-            <h3 className="font-bold text-slate-800 text-sm mb-4 flex items-center gap-2">
-              <Cpu className="w-4 h-4 text-primary" />
+          <div className="glass-panel p-6">
+            <h3 className="font-bold text-white text-sm mb-4 flex items-center gap-2">
+              <Cpu className="w-4 h-4 text-cyan-400" />
               Progressive 3-Phase Fine-Tuning Strategy for Classification
             </h3>
 
             <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
-              <div className="p-4 rounded-xl bg-slate-50 border border-slate-200">
-                <div className="w-6 h-6 rounded-lg bg-primary/10 text-primary font-bold text-xs flex items-center justify-center mb-2">
+              <div className="p-4 rounded-xl bg-white/[0.03] border border-white/10">
+                <div className="w-6 h-6 rounded-lg bg-cyan-500/10 text-cyan-400 font-bold text-xs flex items-center justify-center mb-2">
                   1
                 </div>
-                <h4 className="font-bold text-slate-800 text-sm">Phase 1: Head-Only Training</h4>
-                <p className="text-xs text-slate-500 mt-1 leading-relaxed">
-                  Encoder weights are <strong>completely frozen</strong>. Only the classification MLP (AdaptivePool &rarr; Linear 512 &rarr; Linear 128 &rarr; Softmax 10) is trained with weighted cross-entropy.
+                <h4 className="font-bold text-white text-sm">Phase 1: Head-Only Training</h4>
+                <p className="text-xs text-slate-400 mt-1 leading-relaxed">
+                  Encoder weights are <strong className="text-slate-200">completely frozen</strong>. Only the classification MLP (AdaptivePool &rarr; Linear 512 &rarr; Linear 128 &rarr; Softmax 10) is trained with weighted cross-entropy.
                 </p>
-                <div className="mt-3 text-[11px] font-mono text-slate-600 bg-white p-2 rounded-lg border border-slate-200">
+                <div className="mt-3 text-[11px] font-mono text-cyan-300 bg-black/40 p-2 rounded-lg border border-white/10">
                   LR: 5e-4 &bull; Epochs: 20
                 </div>
               </div>
 
-              <div className="p-4 rounded-xl bg-slate-50 border border-slate-200">
-                <div className="w-6 h-6 rounded-lg bg-teal-500/10 text-teal-600 font-bold text-xs flex items-center justify-center mb-2">
+              <div className="p-4 rounded-xl bg-white/[0.03] border border-white/10">
+                <div className="w-6 h-6 rounded-lg bg-teal-500/10 text-teal-400 font-bold text-xs flex items-center justify-center mb-2">
                   2
                 </div>
-                <h4 className="font-bold text-slate-800 text-sm">Phase 2: Progressive Unfreeze</h4>
-                <p className="text-xs text-slate-500 mt-1 leading-relaxed">
-                  Unfreezes the <strong>enc4 block and the spatial bottleneck</strong>. Allows higher-level representations to adjust to discrimination boundaries while preserving low-level feature edges.
+                <h4 className="font-bold text-white text-sm">Phase 2: Progressive Unfreeze</h4>
+                <p className="text-xs text-slate-400 mt-1 leading-relaxed">
+                  Unfreezes the <strong className="text-slate-200">enc4 block and the spatial bottleneck</strong>. Allows higher-level representations to adjust to discrimination boundaries while preserving low-level feature edges.
                 </p>
-                <div className="mt-3 text-[11px] font-mono text-slate-600 bg-white p-2 rounded-lg border border-slate-200">
+                <div className="mt-3 text-[11px] font-mono text-teal-300 bg-black/40 p-2 rounded-lg border border-white/10">
                   LR: 1e-4 &bull; Epochs: 15
                 </div>
               </div>
 
-              <div className="p-4 rounded-xl bg-slate-50 border border-slate-200">
-                <div className="w-6 h-6 rounded-lg bg-indigo-500/10 text-indigo-600 font-bold text-xs flex items-center justify-center mb-2">
+              <div className="p-4 rounded-xl bg-white/[0.03] border border-white/10">
+                <div className="w-6 h-6 rounded-lg bg-indigo-500/10 text-indigo-400 font-bold text-xs flex items-center justify-center mb-2">
                   3
                 </div>
-                <h4 className="font-bold text-slate-800 text-sm">Phase 3: Full End-to-End Fine-Tuning</h4>
-                <p className="text-xs text-slate-500 mt-1 leading-relaxed">
+                <h4 className="font-bold text-white text-sm">Phase 3: Full End-to-End Fine-Tuning</h4>
+                <p className="text-xs text-slate-400 mt-1 leading-relaxed">
                   All layers unfrozen at a very conservative learning rate. The entire network optimizes discriminative accuracy and achieves top validation scores.
                 </p>
-                <div className="mt-3 text-[11px] font-mono text-slate-600 bg-white p-2 rounded-lg border border-slate-200">
+                <div className="mt-3 text-[11px] font-mono text-indigo-300 bg-black/40 p-2 rounded-lg border border-white/10">
                   LR: 2e-5 &bull; Epochs: 10
                 </div>
               </div>
@@ -867,16 +867,16 @@ export default function AutoencoderView() {
           </div>
 
           {/* Approach Comparison Table */}
-          <div className="bg-white border border-slate-200 rounded-2xl p-6 shadow-sm">
-            <h3 className="font-bold text-slate-800 text-sm mb-4 flex items-center gap-2">
-              <BarChart3 className="w-4 h-4 text-primary" />
+          <div className="glass-panel p-6">
+            <h3 className="font-bold text-white text-sm mb-4 flex items-center gap-2">
+              <BarChart3 className="w-4 h-4 text-cyan-400" />
               Approach Comparison on Construction Site Safety Dataset
             </h3>
 
             <div className="overflow-x-auto">
               <table className="w-full text-left text-xs border-collapse">
                 <thead>
-                  <tr className="border-b border-slate-200 text-slate-400 uppercase text-[10px] font-bold">
+                  <tr className="border-b border-white/10 text-slate-400 uppercase text-[10px] font-bold">
                     <th className="py-3 px-4">Approach</th>
                     <th className="py-3 px-4">Feature Method</th>
                     <th className="py-3 px-4">Classifier</th>
@@ -885,30 +885,30 @@ export default function AutoencoderView() {
                     <th className="py-3 px-4">Status</th>
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-slate-100 font-medium">
+                <tbody className="divide-y divide-white/5 font-medium">
                   <tr>
-                    <td className="py-3 px-4 font-bold text-slate-700">Baseline</td>
-                    <td className="py-3 px-4 text-slate-500">Single bottleneck 128-d</td>
-                    <td className="py-3 px-4 text-slate-500">RBF-SVM</td>
-                    <td className="py-3 px-4 text-slate-400">&mdash;</td>
-                    <td className="py-3 px-4 font-mono text-rose-600 font-bold">21.05%</td>
-                    <td className="py-3 px-4"><span className="text-[10px] bg-slate-100 text-slate-600 px-2 py-0.5 rounded-full font-bold">Too Low</span></td>
+                    <td className="py-3 px-4 font-bold text-slate-300">Baseline</td>
+                    <td className="py-3 px-4 text-slate-400">Single bottleneck 128-d</td>
+                    <td className="py-3 px-4 text-slate-400">RBF-SVM</td>
+                    <td className="py-3 px-4 text-slate-500">&mdash;</td>
+                    <td className="py-3 px-4 font-mono text-rose-400 font-bold">21.05%</td>
+                    <td className="py-3 px-4"><span className="text-[10px] bg-white/5 text-slate-400 px-2 py-0.5 rounded-full font-bold">Too Low</span></td>
                   </tr>
                   <tr>
-                    <td className="py-3 px-4 font-bold text-slate-700">Approach A</td>
-                    <td className="py-3 px-4 text-slate-500">Multi-Scale (480-d) &plus; PCA</td>
-                    <td className="py-3 px-4 text-slate-500">Tuned RBF-SVM</td>
-                    <td className="py-3 px-4 font-mono text-slate-700">63.2%</td>
-                    <td className="py-3 px-4 font-mono text-slate-700 font-bold">65.4%</td>
-                    <td className="py-3 px-4"><span className="text-[10px] bg-blue-50 text-blue-700 border border-blue-200 px-2 py-0.5 rounded-full font-bold">Good Baseline</span></td>
+                    <td className="py-3 px-4 font-bold text-slate-300">Approach A</td>
+                    <td className="py-3 px-4 text-slate-400">Multi-Scale (480-d) &plus; PCA</td>
+                    <td className="py-3 px-4 text-slate-400">Tuned RBF-SVM</td>
+                    <td className="py-3 px-4 font-mono text-slate-300">63.2%</td>
+                    <td className="py-3 px-4 font-mono text-slate-300 font-bold">65.4%</td>
+                    <td className="py-3 px-4"><span className="text-[10px] bg-cyan-500/10 text-cyan-400 border border-cyan-500/30 px-2 py-0.5 rounded-full font-bold">Good Baseline</span></td>
                   </tr>
-                  <tr className="bg-primary/5">
-                    <td className="py-3 px-4 font-bold text-primary">Approach B+C (Ours)</td>
-                    <td className="py-3 px-4 text-slate-700 font-bold">AutoencoderV2 Learned Edges</td>
-                    <td className="py-3 px-4 text-slate-700 font-bold">Neural Classifier Head</td>
-                    <td className="py-3 px-4 font-mono text-emerald-600 font-bold">88.4%</td>
-                    <td className="py-3 px-4 font-mono text-emerald-600 font-black">86.8%</td>
-                    <td className="py-3 px-4"><span className="text-[10px] bg-emerald-50 text-emerald-700 border border-emerald-300 px-2 py-0.5 rounded-full font-bold">Deployed &amp; Connected</span></td>
+                  <tr className="bg-cyan-500/10 border-l-2 border-cyan-400">
+                    <td className="py-3 px-4 font-bold text-cyan-300">Approach B+C (Ours)</td>
+                    <td className="py-3 px-4 text-slate-200 font-bold">AutoencoderV2 Learned Edges</td>
+                    <td className="py-3 px-4 text-slate-200 font-bold">Neural Classifier Head</td>
+                    <td className="py-3 px-4 font-mono text-emerald-400 font-bold">88.4%</td>
+                    <td className="py-3 px-4 font-mono text-emerald-400 font-black">86.8%</td>
+                    <td className="py-3 px-4"><span className="text-[10px] bg-emerald-500/10 text-emerald-400 border border-emerald-500/30 px-2 py-0.5 rounded-full font-bold">Deployed &amp; Connected</span></td>
                   </tr>
                 </tbody>
               </table>

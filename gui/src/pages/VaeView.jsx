@@ -32,9 +32,9 @@ const SAFETY_CLASSES = [
 ];
 
 const CLASS_STYLE = {
-  safe:    { border: 'border-emerald-300', bg: 'bg-emerald-50',  text: 'text-emerald-700',  badge: 'bg-emerald-100 text-emerald-700 border-emerald-200',  ring: 'ring-emerald-400' },
-  danger:  { border: 'border-rose-300',    bg: 'bg-rose-50',     text: 'text-rose-700',     badge: 'bg-rose-100 text-rose-700 border-rose-200',           ring: 'ring-rose-400'    },
-  neutral: { border: 'border-slate-300',   bg: 'bg-slate-50',    text: 'text-slate-700',    badge: 'bg-slate-100 text-slate-600 border-slate-200',        ring: 'ring-slate-400'   },
+  safe:    { border: 'border-emerald-500/40', bg: 'bg-emerald-500/10',  text: 'text-emerald-300',  badge: 'bg-emerald-500/20 text-emerald-300 border-emerald-500/40',  ring: 'ring-emerald-400' },
+  danger:  { border: 'border-rose-500/40',    bg: 'bg-rose-500/10',     text: 'text-rose-300',     badge: 'bg-rose-500/20 text-rose-300 border-rose-500/40',           ring: 'ring-rose-400'    },
+  neutral: { border: 'border-cyan-500/40',    bg: 'bg-cyan-500/10',     text: 'text-cyan-300',     badge: 'bg-cyan-500/20 text-cyan-300 border-cyan-500/40',        ring: 'ring-cyan-400'   },
 };
 
 export default function VaeView() {
@@ -398,10 +398,10 @@ export default function VaeView() {
                       key={cls.idx}
                       onClick={() => { setSelectedClass(cls); setCvaeUrl(null); setCvaeResult(null); }}
                       className={`flex items-center gap-2.5 px-3 py-2.5 rounded-xl border text-sm font-medium
-                                  transition-all duration-200 text-left
+                                  transition-all duration-200 text-left backdrop-blur-sm
                                   ${isSelected
-                                    ? `${s.border} ${s.bg} ${s.text} ring-2 ${s.ring} shadow-sm`
-                                    : 'border-slate-200 bg-white text-slate-600 hover:border-slate-300 hover:bg-slate-50'
+                                    ? `${s.border} ${s.bg} ${s.text} ring-2 ${s.ring} shadow-md`
+                                    : 'border-white/10 bg-white/[0.03] text-slate-400 hover:border-white/20 hover:bg-white/[0.06] hover:text-white'
                                   }`}
                     >
                       <span className="text-base flex-shrink-0">{cls.emoji}</span>
@@ -415,24 +415,24 @@ export default function VaeView() {
 
             {/* Temperature slider */}
             <div>
-              <label className="text-xs font-semibold uppercase tracking-wider text-slate-500 mb-3 flex items-center gap-2">
-                <Thermometer className="w-3.5 h-3.5" />
+              <label className="text-xs font-semibold uppercase tracking-wider text-slate-400 mb-3 flex items-center gap-2">
+                <Thermometer className="w-3.5 h-3.5 text-cyan-400" />
                 Step 2 — Sampling Temperature
-                <span className="ml-auto font-black text-slate-800 text-sm">{temperature.toFixed(1)}</span>
+                <span className="ml-auto font-black text-cyan-400 font-mono text-sm">{temperature.toFixed(1)}</span>
               </label>
               <input
                 type="range" min="0.3" max="2.0" step="0.1"
                 value={temperature}
                 onChange={(e) => setTemperature(parseFloat(e.target.value))}
                 className="w-full h-2 rounded-full appearance-none cursor-pointer
-                           bg-gradient-to-r from-primary/30 via-purple-400/40 to-rose-400/40"
+                           bg-gradient-to-r from-cyan-500 via-indigo-500 to-rose-500"
               />
-              <div className="flex justify-between text-[10px] text-slate-400 mt-1.5">
+              <div className="flex justify-between text-[10px] text-slate-500 font-mono mt-1.5">
                 <span>0.3 — Focused</span>
                 <span>1.0 — Balanced</span>
                 <span>2.0 — Diverse</span>
               </div>
-              <p className="text-xs text-slate-400 mt-2">
+              <p className="text-xs text-slate-500 mt-2">
                 Low temperature → latent z stays near μ (predictable).
                 High temperature → z explores further from μ (creative, varied).
               </p>
@@ -453,13 +453,13 @@ export default function VaeView() {
             </button>
 
             {/* Architecture note */}
-            <div className="p-4 rounded-xl bg-slate-50 border border-slate-200 text-xs text-slate-500 space-y-1.5">
-              <div className="font-semibold text-slate-700 mb-2 flex items-center gap-1.5">
-                <Layers className="w-3.5 h-3.5" /> CVAE Condition Injection Points
+            <div className="p-4 rounded-xl bg-white/[0.03] border border-white/10 text-xs text-slate-400 space-y-1.5">
+              <div className="font-semibold text-slate-200 mb-2 flex items-center gap-1.5">
+                <Layers className="w-3.5 h-3.5 text-cyan-400" /> CVAE Condition Injection Points
               </div>
               <div>🔹 <strong>Encoder:</strong> one-hot → Linear(64) → concat with CNN features → μ, σ heads</div>
               <div>🔹 <strong>Decoder:</strong> one-hot → Linear(64) → concat with z → FC expansion → deconv</div>
-              <div className="pt-1 text-[10px] text-slate-400">
+              <div className="pt-1 text-[10px] text-cyan-400/80 font-mono">
                 Latent dim: 256 · Condition dim: 64 · Total encoder input: 16,448-d
               </div>
             </div>
@@ -467,17 +467,17 @@ export default function VaeView() {
 
           {/* Right: Output */}
           <div className="space-y-4">
-            <label className="text-xs font-semibold uppercase tracking-wider text-slate-500 block">
+            <label className="text-xs font-semibold uppercase tracking-wider text-slate-400 block">
               Generated Scene
             </label>
 
             <div className="relative w-full aspect-square rounded-2xl overflow-hidden border-2
-                            border-dashed border-slate-200 bg-slate-50 flex items-center justify-center">
+                            border-dashed border-white/15 bg-black/40 flex items-center justify-center">
               {isCvaeGenerating && (
-                <div className="absolute inset-0 flex flex-col items-center justify-center bg-white/80 backdrop-blur-sm z-10">
-                  <Loader2 className="w-10 h-10 animate-spin text-purple-500 mb-3" />
-                  <p className="text-sm text-slate-600 font-medium">Sampling from conditioned latent space…</p>
-                  <p className="text-xs text-slate-400 mt-1">z ~ N(0,I) conditioned on {selectedClass?.label}</p>
+                <div className="absolute inset-0 flex flex-col items-center justify-center bg-black/80 backdrop-blur-sm z-10">
+                  <Loader2 className="w-10 h-10 animate-spin text-cyan-400 mb-3" />
+                  <p className="text-sm text-slate-300 font-medium">Sampling from conditioned latent space…</p>
+                  <p className="text-xs text-slate-500 mt-1">z ~ N(0,I) conditioned on {selectedClass?.label}</p>
                 </div>
               )}
               {cvaeUrl ? (
@@ -490,8 +490,8 @@ export default function VaeView() {
                   className="w-full h-full object-cover"
                 />
               ) : !isCvaeGenerating && (
-                <div className="flex flex-col items-center text-slate-400">
-                  <FlaskConical className="w-12 h-12 mb-3 opacity-20" />
+                <div className="flex flex-col items-center text-slate-500">
+                  <FlaskConical className="w-12 h-12 mb-3 opacity-30 text-cyan-400" />
                   <p className="text-sm">Select a class and generate</p>
                 </div>
               )}
@@ -501,27 +501,24 @@ export default function VaeView() {
             {cvaeResult && (
               <motion.div
                 initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }}
-                className="p-4 rounded-xl border bg-white space-y-3"
-                style={{
-                  borderColor: CLASS_STYLE[selectedClass?.type]?.border?.replace('border-', '') || '#e2e8f0'
-                }}
+                className="p-4 rounded-xl border bg-black/40 border-white/10 space-y-3 backdrop-blur-md"
               >
                 <div className="flex items-center justify-between">
-                  <span className="text-xs text-slate-500 font-medium">Condition Applied</span>
+                  <span className="text-xs text-slate-400 font-medium">Condition Applied</span>
                   <span className={`text-xs font-bold px-2.5 py-1 rounded-full border
                     ${CLASS_STYLE[cvaeResult ? SAFETY_CLASSES[cvaeResult.class_idx]?.type : 'neutral']?.badge}`}>
                     {cvaeResult.class_name}
                   </span>
                 </div>
                 <div className="flex items-center justify-between">
-                  <span className="text-xs text-slate-500 font-medium">Temperature</span>
-                  <span className="text-xs font-bold text-slate-700">{cvaeResult.temperature.toFixed(1)}</span>
+                  <span className="text-xs text-slate-400 font-medium">Temperature</span>
+                  <span className="text-xs font-bold text-slate-200 font-mono">{cvaeResult.temperature.toFixed(1)}</span>
                 </div>
                 <div className="flex items-center justify-between">
-                  <span className="text-xs text-slate-500 font-medium">Class Type</span>
+                  <span className="text-xs text-slate-400 font-medium">Class Type</span>
                   <span className={`text-xs font-semibold flex items-center gap-1
-                    ${SAFETY_CLASSES[cvaeResult.class_idx]?.type === 'danger' ? 'text-rose-600' :
-                      SAFETY_CLASSES[cvaeResult.class_idx]?.type === 'safe' ? 'text-emerald-600' : 'text-slate-600'}`}>
+                    ${SAFETY_CLASSES[cvaeResult.class_idx]?.type === 'danger' ? 'text-rose-400' :
+                      SAFETY_CLASSES[cvaeResult.class_idx]?.type === 'safe' ? 'text-emerald-400' : 'text-slate-300'}`}>
                     {SAFETY_CLASSES[cvaeResult.class_idx]?.type === 'danger'
                       ? <><AlertTriangle className="w-3 h-3" /> Violation / Hazard</>
                       : SAFETY_CLASSES[cvaeResult.class_idx]?.type === 'safe'
@@ -530,8 +527,8 @@ export default function VaeView() {
                   </span>
                 </div>
                 <div className="flex items-center justify-between">
-                  <span className="text-xs text-slate-500 font-medium">Latent z dimension</span>
-                  <span className="text-xs font-mono font-bold text-slate-700">256 + 64 cond = 320</span>
+                  <span className="text-xs text-slate-400 font-medium">Latent z dimension</span>
+                  <span className="text-xs font-mono font-bold text-cyan-400">256 + 64 cond = 320</span>
                 </div>
               </motion.div>
             )}
