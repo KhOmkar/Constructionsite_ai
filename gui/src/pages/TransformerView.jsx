@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { motion } from 'framer-motion';
 import { Upload, Play, Clock, AlertTriangle, Loader2, Layers, Cpu, Hash, Activity, Eye, Crosshair } from 'lucide-react';
 import axios from 'axios';
+import SampleImageSelector from '../components/SampleImageSelector';
 
 const API = 'http://localhost:8000';
 
@@ -250,6 +251,38 @@ export default function TransformerView() {
           </div>
         </motion.div>
       </div>
+
+      {/* Preset Test Samples for Transformer 4D Simulation */}
+      <SampleImageSelector
+        onSelectSample={(sample, file) => {
+          setSelectedFile(file);
+          setPreviewUrl(sample.image);
+          setSimulatedUrl(null);
+          setRiskMapUrl(null);
+          const stageVal = String(sample.default_stage !== undefined ? sample.default_stage : '1');
+          const daysVal = String(sample.default_days !== undefined ? sample.default_days : '30');
+          setStage(stageVal);
+          setDays(daysVal);
+          // Auto-trigger simulation
+          if (file) {
+            setIsSimulating(true);
+            const formData = new FormData();
+            formData.append('file', file);
+            formData.append('stage_idx', stageVal);
+            formData.append('delta_days', daysVal);
+            axios.post(`${API}/api/transformer/simulate`, formData)
+              .then(res => {
+                setSimulatedUrl(res.data.future_sim_image);
+                setRiskMapUrl(res.data.risk_map_image);
+              })
+              .catch(err => console.error(err))
+              .finally(() => setIsSimulating(false));
+          }
+        }}
+        filterModel="transformer"
+        title="Sample Images For Testing 4D Digital Twin Simulation"
+        subtitle="Select real construction scenes (earthwork trenches, structural framing, tower cranes) to simulate future visual states & spatial risk hazard maps."
+      />
 
       {/* Interactive Simulation */}
       <motion.div variants={itemVariants} className="glass-panel p-8 relative overflow-hidden">

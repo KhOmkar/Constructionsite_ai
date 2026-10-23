@@ -61,6 +61,49 @@ async def ae_classify(file: UploadFile = File(...)):
     return JSONResponse(content=result)
 
 
+@app.get("/api/samples")
+def get_sample_presets():
+    """
+    Returns curated real construction test sample images across all models:
+    Autoencoder & Classification, VAE, GAN, and Transformer.
+    """
+    samples = inference_manager.get_preset_samples()
+    return JSONResponse(content={"status": "success", "samples": samples})
+
+
+@app.post("/api/samples/test_sample")
+async def test_sample_by_id(
+    sample_id: str = Form(...),
+    model: str = Form("ae"),
+    stage_idx: int = Form(1),
+    delta_days: float = Form(30.0),
+):
+    """
+    Runs model inference directly on a curated preset sample.
+    Supports 'ae' (classification + reconstruction), 'vae', 'transformer', and 'gan'.
+    """
+    img_bytes = inference_manager.get_sample_bytes(sample_id)
+    if img_bytes is None:
+        return JSONResponse(status_code=404, content={"status": "error", "message": f"Sample {sample_id} not found"})
+
+    if model == "ae":
+        clf_res = inference_manager.classify_ae(img_bytes)
+        recon_res = inference_manager.reconstruct_ae(img_bytes)
+        clf_res["reconstruction"] = recon_res
+        return JSONResponse(content={"status": "success", "model": "ae", "result": clf_res})
+    elif model == "vae":
+        recon_res = inference_manager.reconstruct_vae(img_bytes)
+        return JSONResponse(content={"status": "success", "model": "vae", "result": recon_res})
+    elif model == "transformer":
+        sim_res = inference_manager.simulate_transformer(img_bytes, stage_idx, delta_days)
+        return JSONResponse(content={"status": "success", "model": "transformer", "result": sim_res})
+    elif model == "gan":
+        gan_res = inference_manager.generate_gan()
+        return JSONResponse(content={"status": "success", "model": "gan", "result": gan_res})
+    else:
+        return JSONResponse(status_code=400, content={"status": "error", "message": f"Unknown model {model}"})
+
+
 @app.get("/api/ae/sample_test")
 def ae_sample_test(max_samples: int = Query(default=8, ge=1, le=20)):
     """

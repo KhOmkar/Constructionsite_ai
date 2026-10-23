@@ -1,10 +1,14 @@
+import React, { useState } from 'react';
 import { motion } from 'framer-motion';
 import { Link } from 'react-router-dom';
+import axios from 'axios';
 import {
   Activity, ShieldAlert, BarChart3, Maximize2, Info,
   Box, Sparkles, Image as ImageIcon, Layers, ArrowRight,
-  BookOpen, Scale, TrendingUp, Database, Cpu
+  BookOpen, Scale, TrendingUp, Database, Cpu, Play,
+  CheckCircle2, AlertTriangle, Zap, RefreshCw, Eye
 } from 'lucide-react';
+import SampleImageSelector from '../components/SampleImageSelector';
 
 const containerVariants = {
   hidden: { opacity: 0 },
@@ -114,6 +118,46 @@ const EDAChart = ({ title, imgUrl, className = '' }) => (
    DASHBOARD PAGE
    ====================================================================== */
 export default function Dashboard() {
+  const [selectedSample, setSelectedSample] = useState(null);
+  const [activeModel, setActiveModel] = useState('ae');
+  const [stageIdx, setStageIdx] = useState(1);
+  const [deltaDays, setDeltaDays] = useState(30);
+  const [isRunningTest, setIsRunningTest] = useState(false);
+  const [testResult, setTestResult] = useState(null);
+
+  const handleSelectSample = (sample) => {
+    setSelectedSample(sample);
+    if (sample.default_stage !== undefined) setStageIdx(sample.default_stage);
+    if (sample.default_days !== undefined) setDeltaDays(sample.default_days);
+    if (sample.recommended_models && !sample.recommended_models.includes(activeModel)) {
+      setActiveModel(sample.recommended_models[0]);
+    }
+    // Auto-trigger test on sample selection for instant feedback!
+    runLiveTest(sample, sample.recommended_models ? sample.recommended_models[0] : activeModel);
+  };
+
+  const runLiveTest = async (sampleToUse = selectedSample, modelToUse = activeModel) => {
+    if (!sampleToUse) return;
+    setIsRunningTest(true);
+    setTestResult(null);
+
+    const formData = new FormData();
+    formData.append('sample_id', sampleToUse.id);
+    formData.append('model', modelToUse);
+    formData.append('stage_idx', stageIdx);
+    formData.append('delta_days', deltaDays);
+
+    try {
+      const res = await axios.post(`${API}/api/samples/test_sample`, formData);
+      setTestResult(res.data);
+    } catch (err) {
+      console.error('Error running sample test:', err);
+      alert('Failed to connect to backend server. Make sure port 8000 is running.');
+    } finally {
+      setIsRunningTest(false);
+    }
+  };
+
   return (
     <motion.div
       variants={containerVariants}
@@ -221,6 +265,296 @@ export default function Dashboard() {
         <StatCard title="Total Detections" value="14.2K" icon={TrendingUp}  trend={8}   accentColor="#059669" />
         <StatCard title="Models Deployed"  value="4 / 4" icon={Cpu}         trend={100} accentColor="#7c3aed" />
       </div>
+
+      {/* ======================================================================
+         INTERACTIVE LIVE MODEL TESTING STATION (WITH REAL DATASET SAMPLES)
+         ====================================================================== */}
+      <motion.div variants={itemVariants} className="space-y-4">
+        <div className="flex items-center justify-between">
+          <div className="section-title mb-0">
+            <div className="section-icon bg-primary text-white"><Zap className="w-4 h-4" /></div>
+            Multi-Model Live Testing Station
+          </div>
+          <span className="text-xs font-bold text-slate-400 uppercase tracking-widest hidden sm:inline">
+            1-Click Dataset Benchmarking
+          </span>
+        </div>
+
+        {/* Sample Image Selector Carousel */}
+        <SampleImageSelector
+          onSelectSample={handleSelectSample}
+          selectedSampleId={selectedSample?.id}
+          title="Sample Images For Testing On Dashboard"
+          subtitle="Click any real test image below to automatically load and run it across any model."
+        />
+
+        {/* Interactive Testing Bench */}
+        {selectedSample && (
+          <div className="bg-white border border-slate-200 rounded-2xl p-6 shadow-md space-y-6">
+            {/* Model Selection Tabs & Run Button */}
+            <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 pb-4 border-b border-slate-100">
+              <div className="flex items-center gap-2">
+                <span className="text-xs font-bold text-slate-400 uppercase tracking-wider">Target Model:</span>
+                <div className="flex flex-wrap gap-1.5 p-1 bg-slate-100 rounded-xl">
+                  {[
+                    { id: 'ae', label: 'Autoencoder & PPE', icon: Box, color: '#0891b2' },
+                    { id: 'vae', label: 'VAE Reconstructor', icon: Sparkles, color: '#7c3aed' },
+                    { id: 'transformer', label: 'Transformer 4D', icon: Layers, color: '#003153' },
+                    { id: 'gan', label: 'DCGAN Benchmark', icon: ImageIcon, color: '#059669' }
+                  ].map(tab => {
+                    const TabIcon = tab.icon;
+                    const isActive = activeModel === tab.id;
+                    return (
+                      <button
+                        key={tab.id}
+                        onClick={() => {
+                          setActiveModel(tab.id);
+                          runLiveTest(selectedSample, tab.id);
+                        }}
+                        className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold transition-all ${
+                          isActive
+                            ? 'bg-white text-slate-800 shadow-sm'
+                            : 'text-slate-500 hover:text-slate-800'
+                        }`}
+                      >
+                        <TabIcon className="w-3.5 h-3.5" style={{ color: tab.color }} />
+                        {tab.label}
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
+
+              <div className="flex items-center gap-3">
+                <button
+                  onClick={() => runLiveTest(selectedSample, activeModel)}
+                  disabled={isRunningTest}
+                  className="btn-primary py-2 px-4 text-xs flex items-center gap-2 shadow-md shadow-primary/20"
+                >
+                  {isRunningTest ? (
+                    <>
+                      <RefreshCw className="w-3.5 h-3.5 animate-spin" />
+                      Running Neural Inference...
+                    </>
+                  ) : (
+                    <>
+                      <Play className="w-3.5 h-3.5 fill-current" />
+                      Run Live Test
+                    </>
+                  )}
+                </button>
+
+                <Link
+                  to={activeModel === 'ae' ? '/autoencoder' : activeModel === 'vae' ? '/vae' : activeModel === 'transformer' ? '/transformer' : '/gan'}
+                  className="btn-secondary py-2 px-3 text-xs flex items-center gap-1.5"
+                >
+                  <span>Open Deep Dive</span>
+                  <ArrowRight className="w-3 h-3" />
+                </Link>
+              </div>
+            </div>
+
+            {/* Test Arena: Input Details + Real-time Results */}
+            <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
+              {/* Left Column: Selected Sample Card */}
+              <div className="lg:col-span-4 bg-slate-50 border border-slate-200 rounded-xl p-4 space-y-3">
+                <div className="flex justify-between items-start">
+                  <div>
+                    <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400">Selected Test Input</span>
+                    <h4 className="font-bold text-slate-800 text-sm">{selectedSample.title}</h4>
+                  </div>
+                  <span className="text-[10px] font-bold px-2 py-0.5 rounded border bg-white shadow-sm text-slate-700">
+                    {selectedSample.category}
+                  </span>
+                </div>
+
+                <div className="aspect-square w-full rounded-xl overflow-hidden bg-slate-900 border border-slate-200 relative group">
+                  <img
+                    src={selectedSample.image}
+                    alt={selectedSample.title}
+                    className="w-full h-full object-cover"
+                  />
+                  <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity flex items-end p-3">
+                    <span className="text-[10px] font-mono text-white/90 truncate">{selectedSample.id}</span>
+                  </div>
+                </div>
+
+                <p className="text-xs text-slate-500 leading-relaxed">{selectedSample.description}</p>
+
+                {/* Additional controls for Transformer */}
+                {activeModel === 'transformer' && (
+                  <div className="pt-3 border-t border-slate-200 space-y-2">
+                    <div className="flex justify-between text-xs font-semibold text-slate-600">
+                      <span>Stage Horizon:</span>
+                      <span className="text-primary font-bold">
+                        {stageIdx === 0 ? 'Stage 0 (Groundwork)' : stageIdx === 1 ? 'Stage 1 (Foundation)' : 'Stage 2 (Superstructure)'}
+                      </span>
+                    </div>
+                    <div className="grid grid-cols-3 gap-1">
+                      {[0, 1, 2].map(st => (
+                        <button
+                          key={st}
+                          onClick={() => { setStageIdx(st); runLiveTest(selectedSample, 'transformer'); }}
+                          className={`py-1 rounded text-[10px] font-bold border ${
+                            stageIdx === st ? 'bg-primary text-white border-primary' : 'bg-white text-slate-600 border-slate-200'
+                          }`}
+                        >
+                          Stage {st}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                )}
+              </div>
+
+              {/* Right Column: Live Model Output Display */}
+              <div className="lg:col-span-8 bg-slate-50 border border-slate-200 rounded-xl p-5 min-h-[320px] flex flex-col justify-center">
+                {isRunningTest && (
+                  <div className="flex flex-col items-center justify-center py-12 text-slate-400 gap-3">
+                    <RefreshCw className="w-8 h-8 text-primary animate-spin" />
+                    <span className="text-sm font-semibold text-slate-600">Executing {activeModel.toUpperCase()} inference on test sample...</span>
+                    <span className="text-xs text-slate-400 font-mono">PyTorch tensor pipeline active</span>
+                  </div>
+                )}
+
+                {!isRunningTest && !testResult && (
+                  <div className="text-center py-12 text-slate-400 space-y-2">
+                    <Zap className="w-8 h-8 text-slate-300 mx-auto" />
+                    <p className="text-sm font-semibold text-slate-600">Ready to test</p>
+                    <p className="text-xs text-slate-400">Click &quot;Run Live Test&quot; above to see real-time inference output</p>
+                  </div>
+                )}
+
+                {!isRunningTest && testResult?.result && (
+                  <div className="space-y-4">
+                    {/* Autoencoder & Classification Result */}
+                    {activeModel === 'ae' && (
+                      <div className="space-y-4">
+                        <div className="flex flex-wrap items-center justify-between gap-3 p-4 bg-white rounded-xl border border-slate-200 shadow-sm">
+                          <div className="flex items-center gap-3">
+                            <div className={`w-10 h-10 rounded-xl flex items-center justify-center font-black text-white shadow-sm ${
+                              testResult.result.status_color === 'emerald' ? 'bg-emerald-600' :
+                              testResult.result.status_color === 'rose' ? 'bg-rose-600' : 'bg-primary'
+                            }`}>
+                              {testResult.result.confidence_percentage}%
+                            </div>
+                            <div>
+                              <div className="text-xs text-slate-400 font-bold uppercase tracking-wider">Classification Prediction</div>
+                              <div className="text-lg font-black text-slate-800">{testResult.result.predicted_class}</div>
+                            </div>
+                          </div>
+                          <span className={`px-3 py-1 rounded-full text-xs font-black border ${
+                            testResult.result.status_color === 'emerald'
+                              ? 'bg-emerald-50 text-emerald-700 border-emerald-300'
+                              : testResult.result.status_color === 'rose'
+                              ? 'bg-rose-50 text-rose-700 border-rose-300'
+                              : 'bg-primary/10 text-primary border-primary/20'
+                          }`}>
+                            {testResult.result.safety_status}
+                          </span>
+                        </div>
+
+                        {/* Reconstruction Comparison */}
+                        {testResult.result.reconstructed_image && (
+                          <div className="grid grid-cols-2 gap-4">
+                            <div className="bg-white rounded-xl p-3 border border-slate-200 text-center">
+                              <span className="text-[10px] font-bold text-slate-400 uppercase block mb-2">Original Sample</span>
+                              <div className="aspect-square rounded-lg overflow-hidden bg-slate-100 border border-slate-100">
+                                <img src={selectedSample.image} alt="Original" className="w-full h-full object-cover" />
+                              </div>
+                            </div>
+                            <div className="bg-white rounded-xl p-3 border border-slate-200 text-center">
+                              <div className="flex justify-between items-center mb-2 px-1">
+                                <span className="text-[10px] font-bold text-primary uppercase">Autoencoder Reconstructed</span>
+                                <span className="text-[10px] font-mono text-slate-400">MSE: {testResult.result.mse_loss}</span>
+                              </div>
+                              <div className="aspect-square rounded-lg overflow-hidden bg-slate-100 border border-primary/20">
+                                <img src={testResult.result.reconstructed_image} alt="Reconstructed" className="w-full h-full object-cover" />
+                              </div>
+                            </div>
+                          </div>
+                        )}
+                      </div>
+                    )}
+
+                    {/* VAE Result */}
+                    {activeModel === 'vae' && (
+                      <div className="space-y-4">
+                        <div className="grid grid-cols-2 gap-4">
+                          <div className="bg-white rounded-xl p-3 border border-slate-200 text-center">
+                            <span className="text-[10px] font-bold text-slate-400 uppercase block mb-2">Input Prior</span>
+                            <div className="aspect-square rounded-lg overflow-hidden bg-slate-100">
+                              <img src={selectedSample.image} alt="Input" className="w-full h-full object-cover" />
+                            </div>
+                          </div>
+                          <div className="bg-white rounded-xl p-3 border border-slate-200 text-center">
+                            <span className="text-[10px] font-bold text-secondary uppercase block mb-2">VAE Latent Reconstruction</span>
+                            <div className="aspect-square rounded-lg overflow-hidden bg-slate-100 border border-secondary/30">
+                              <img src={testResult.result.reconstructed_image} alt="VAE Reconstructed" className="w-full h-full object-cover" />
+                            </div>
+                          </div>
+                        </div>
+                        <div className="p-3 bg-white rounded-xl border border-slate-200 text-xs text-slate-600 flex items-center justify-between">
+                          <span>Latent Representation: <strong className="font-mono text-secondary">z ~ N(μ, σ²), d=256</strong></span>
+                          <span className="badge badge-secondary">Probabilistic Encoding</span>
+                        </div>
+                      </div>
+                    )}
+
+                    {/* Transformer Result */}
+                    {activeModel === 'transformer' && (
+                      <div className="space-y-4">
+                        <div className="grid grid-cols-2 gap-4">
+                          <div className="bg-white rounded-xl p-3 border border-slate-200 text-center">
+                            <span className="text-[10px] font-bold text-cyan-600 uppercase block mb-2">Predicted Future Progression</span>
+                            <div className="aspect-square rounded-lg overflow-hidden bg-slate-100 border border-cyan-200">
+                              <img src={testResult.result.future_sim_image} alt="Future State" className="w-full h-full object-cover" />
+                            </div>
+                          </div>
+                          <div className="bg-white rounded-xl p-3 border border-slate-200 text-center">
+                            <span className="text-[10px] font-bold text-rose-600 uppercase block mb-2">Spatial Risk Hazard Map</span>
+                            <div className="aspect-square rounded-lg overflow-hidden bg-slate-100 border border-rose-200">
+                              <img src={testResult.result.risk_map_image} alt="Risk Map" className="w-full h-full object-cover" />
+                            </div>
+                          </div>
+                        </div>
+                        <div className="p-3 bg-white rounded-xl border border-slate-200 text-xs text-slate-600 flex items-center justify-between">
+                          <span>Digital Twin Horizon: <strong className="text-primary font-bold">+{deltaDays} Days</strong></span>
+                          <span className="text-xs font-mono text-emerald-600 font-bold">Attention Map Synthesized</span>
+                        </div>
+                      </div>
+                    )}
+
+                    {/* GAN Result */}
+                    {activeModel === 'gan' && (
+                      <div className="space-y-4">
+                        <div className="grid grid-cols-2 gap-4">
+                          <div className="bg-white rounded-xl p-3 border border-slate-200 text-center">
+                            <span className="text-[10px] font-bold text-slate-400 uppercase block mb-2">Real Site Benchmark</span>
+                            <div className="aspect-square rounded-lg overflow-hidden bg-slate-100">
+                              <img src={selectedSample.image} alt="Real Benchmark" className="w-full h-full object-cover" />
+                            </div>
+                          </div>
+                          <div className="bg-white rounded-xl p-3 border border-slate-200 text-center">
+                            <span className="text-[10px] font-bold text-emerald-600 uppercase block mb-2">DCGAN Synthetic Generation</span>
+                            <div className="aspect-square rounded-lg overflow-hidden bg-slate-100 border border-emerald-300">
+                              <img src={testResult.result.generated_image_url} alt="GAN Generated" className="w-full h-full object-cover" />
+                            </div>
+                          </div>
+                        </div>
+                        <div className="p-3 bg-white rounded-xl border border-slate-200 text-xs text-slate-600 flex items-center justify-between">
+                          <span>Adversarial Synthesis: <strong className="font-mono text-emerald-600">z ~ N(0, I), FID: 98.3</strong></span>
+                          <span className="badge badge-success">Photorealistic Synthesis</span>
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                )}
+              </div>
+            </div>
+          </div>
+        )}
+      </motion.div>
 
       {/* Model Cards */}
       <motion.div variants={itemVariants}>

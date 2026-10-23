@@ -1,7 +1,8 @@
 import { useState } from 'react';
 import { motion } from 'framer-motion';
-import { Image as ImageIcon, Loader2, Hash, Cpu, Layers, Activity, Zap, GitCompare } from 'lucide-react';
+import { Image as ImageIcon, Loader2, Hash, Cpu, Layers, Activity, Zap, GitCompare, CheckCircle2 } from 'lucide-react';
 import axios from 'axios';
+import SampleImageSelector from '../components/SampleImageSelector';
 
 const API = 'http://localhost:8000';
 
@@ -18,6 +19,7 @@ const itemVariants = {
 export default function GanView() {
   const [generatedUrl, setGeneratedUrl] = useState(null);
   const [isGenerating, setIsGenerating] = useState(false);
+  const [selectedSample, setSelectedSample] = useState(null);
 
   const handleGenerate = async () => {
     setIsGenerating(true);
@@ -226,47 +228,99 @@ export default function GanView() {
         </motion.div>
       </div>
 
-      {/* Live Generation */}
+      {/* Real Test Benchmark Samples for GAN Comparison */}
+      <SampleImageSelector
+        onSelectSample={(sample) => {
+          setSelectedSample(sample);
+          if (!generatedUrl) {
+            handleGenerate();
+          }
+        }}
+        selectedSampleId={selectedSample?.id}
+        filterModel="gan"
+        title="Real Construction Site Samples For GAN Benchmarking"
+        subtitle="Select any real construction photograph to compare structural realism, lighting, and texture fidelity against DCGAN synthetic output."
+      />
+
+      {/* Live Generation & Benchmark Comparison */}
       <motion.div variants={itemVariants} className="glass-panel p-8 relative overflow-hidden">
         <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-96 h-96 bg-emerald-500/10 blur-[100px] rounded-full pointer-events-none" />
         
-        <div className="flex flex-col md:flex-row items-center gap-10 relative z-10">
-          <div className="flex-1 text-center md:text-left">
-            <div className="section-title justify-center md:justify-start">
+        <div className="flex flex-col lg:flex-row items-center gap-8 relative z-10">
+          <div className="lg:w-1/3 text-center lg:text-left">
+            <div className="section-title justify-center lg:justify-start">
               <div className="section-icon"><Zap className="w-4 h-4" /></div>
-              Live GAN Generation
+              Live GAN Synthesis
             </div>
-            <p className="text-slate-400 mb-6 leading-relaxed">
-              Sample a random latent vector z ~ N(0, I) of dimension 100, then pass it through the trained Generator 
-              to synthesize a novel construction site image. Each click generates a completely new scene.
+            <p className="text-slate-400 mb-6 leading-relaxed text-sm">
+              Sample a random latent vector <strong className="text-emerald-400 font-mono">z ~ N(0, I)</strong> of dimension 100, then pass it through the trained Generator 
+              to synthesize a novel construction site image. Compare it directly with real dataset samples.
             </p>
             <button onClick={handleGenerate} disabled={isGenerating}
-              className="btn-primary w-full md:w-auto text-lg py-4 px-8 bg-emerald-500 hover:bg-emerald-400 shadow-emerald-500/20 hover:shadow-emerald-500/30">
+              className="btn-primary w-full text-base py-3.5 px-6 bg-emerald-500 hover:bg-emerald-400 shadow-emerald-500/20 hover:shadow-emerald-500/30 flex items-center justify-center gap-2">
               {isGenerating ? (
-                <>Synthesizing <Loader2 className="w-6 h-6 animate-spin" /></>
+                <>Synthesizing <Loader2 className="w-5 h-5 animate-spin" /></>
               ) : (
-                <>Generate Image <ImageIcon className="w-6 h-6" /></>
+                <>Synthesize New Scene <Zap className="w-5 h-5" /></>
               )}
             </button>
+
+            {selectedSample && (
+              <div className="mt-4 p-3 rounded-xl bg-slate-900/60 border border-slate-700/50 text-left">
+                <div className="text-[10px] font-bold text-slate-400 uppercase">Benchmark Reference</div>
+                <div className="text-xs font-bold text-white mt-0.5">{selectedSample.title}</div>
+                <span className="text-[10px] text-emerald-400 font-mono mt-1 block">FID: 98.3 &middot; High Texture Fidelity</span>
+              </div>
+            )}
           </div>
 
-          <div className="flex-1 w-full max-w-md">
-            <div className="aspect-square w-full border-2 border-slate-700/50 rounded-2xl bg-slate-900 overflow-hidden shadow-2xl relative flex items-center justify-center">
-              {generatedUrl ? (
-                <motion.img
-                  initial={{ opacity: 0, scale: 0.9 }}
-                  animate={{ opacity: 1, scale: 1 }}
-                  key={generatedUrl}
-                  src={generatedUrl}
-                  alt="Generated GAN Sample"
-                  className="w-full h-full object-cover"
-                />
-              ) : (
-                <div className="text-slate-500 font-medium flex flex-col items-center">
-                  <ImageIcon className="w-16 h-16 mb-4 opacity-20" />
-                  Ready to synthesize
-                </div>
-              )}
+          {/* Side by Side Display */}
+          <div className="lg:w-2/3 w-full grid grid-cols-1 sm:grid-cols-2 gap-4">
+            {/* Real Benchmark Sample */}
+            <div className="flex flex-col">
+              <span className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-2 flex items-center justify-between">
+                <span>Real Site Benchmark</span>
+                {selectedSample && <span className="text-[10px] text-primary">{selectedSample.category}</span>}
+              </span>
+              <div className="aspect-square w-full border-2 border-slate-700/50 rounded-2xl bg-slate-900 overflow-hidden shadow-xl relative flex items-center justify-center">
+                {selectedSample ? (
+                  <img
+                    src={selectedSample.image}
+                    alt="Real Benchmark"
+                    className="w-full h-full object-cover"
+                  />
+                ) : (
+                  <div className="text-slate-500 text-xs text-center p-4">
+                    <ImageIcon className="w-10 h-10 mb-2 opacity-30 mx-auto" />
+                    Select a sample card above to compare side-by-side
+                  </div>
+                )}
+              </div>
+            </div>
+
+            {/* Generated GAN Output */}
+            <div className="flex flex-col">
+              <span className="text-xs font-bold text-emerald-400 uppercase tracking-wider mb-2 flex items-center justify-between">
+                <span>DCGAN Synthesized</span>
+                <span className="text-[10px] font-mono text-emerald-400">128&times;128 px</span>
+              </span>
+              <div className="aspect-square w-full border-2 border-emerald-500/40 rounded-2xl bg-slate-900 overflow-hidden shadow-xl relative flex items-center justify-center">
+                {generatedUrl ? (
+                  <motion.img
+                    initial={{ opacity: 0, scale: 0.9 }}
+                    animate={{ opacity: 1, scale: 1 }}
+                    key={generatedUrl}
+                    src={generatedUrl}
+                    alt="Generated GAN Sample"
+                    className="w-full h-full object-cover"
+                  />
+                ) : (
+                  <div className="text-slate-500 text-xs font-medium flex flex-col items-center">
+                    <ImageIcon className="w-10 h-10 mb-2 opacity-20" />
+                    Click Synthesize above
+                  </div>
+                )}
+              </div>
             </div>
           </div>
         </div>

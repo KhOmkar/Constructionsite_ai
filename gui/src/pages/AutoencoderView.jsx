@@ -7,6 +7,7 @@ import {
   HelpCircle, ChevronRight, HardHat, AlertOctagon, Truck
 } from 'lucide-react';
 import axios from 'axios';
+import SampleImageSelector from '../components/SampleImageSelector';
 
 const API = 'http://localhost:8000';
 
@@ -274,6 +275,28 @@ export default function AutoencoderView() {
               </div>
             </div>
           </div>
+
+          {/* Quick-Test Dataset Sample Images Selector */}
+          <SampleImageSelector
+            onSelectSample={(sample, file) => {
+              setSelectedFile(file);
+              setPreviewUrl(sample.image);
+              setClassificationResult(null);
+              // Trigger instant classification
+              if (file) {
+                setIsClassifying(true);
+                const formData = new FormData();
+                formData.append('file', file);
+                axios.post(`${API}/api/ae/classify`, formData)
+                  .then(res => setClassificationResult(res.data))
+                  .catch(err => console.error(err))
+                  .finally(() => setIsClassifying(false));
+              }
+            }}
+            filterModel="ae"
+            title="Sample Images For Testing Classification"
+            subtitle="Click any sample crop or site image to instantly classify PPE compliance with Autoencoder representations."
+          />
 
           {/* Interactive Classification Section */}
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
@@ -605,6 +628,39 @@ export default function AutoencoderView() {
           exit={{ opacity: 0 }}
           className="space-y-8"
         >
+          {/* Quick-Test Dataset Sample Images Selector for Reconstruction */}
+          <SampleImageSelector
+            onSelectSample={(sample, file) => {
+              setReconFile(file);
+              setReconPreviewUrl(sample.image);
+              setReconstructedUrl(null);
+              setReconMetrics(null);
+              // Trigger instant reconstruction
+              if (file) {
+                setIsReconstructing(true);
+                const formData = new FormData();
+                formData.append('file', file);
+                axios.post(`${API}/api/ae/reconstruct`, formData)
+                  .then(res => {
+                    setReconstructedUrl(res.data.reconstructed_image);
+                    setReconMetrics({
+                      mse_loss: res.data.mse_loss,
+                      ssim_score: res.data.ssim_score,
+                      compression_ratio: res.data.compression_ratio,
+                      reconstruction_fidelity: res.data.reconstruction_fidelity,
+                      latent_dim: res.data.latent_dim,
+                      model_version: res.data.model_version
+                    });
+                  })
+                  .catch(err => console.error(err))
+                  .finally(() => setIsReconstructing(false));
+              }
+            }}
+            filterModel="ae"
+            title="Sample Images For Testing Autoencoder Reconstruction"
+            subtitle="Click any site sample below to test U-Net compression, skip connection decoding, and MSE fidelity."
+          />
+
           {/* Reconstruction Interactive Panel */}
           <div className="bg-white border border-slate-200 rounded-2xl p-6 shadow-sm">
             <div className="flex items-center justify-between mb-4">

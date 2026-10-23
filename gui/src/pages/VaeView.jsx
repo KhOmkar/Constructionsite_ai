@@ -3,6 +3,7 @@ import { motion } from 'framer-motion';
 import { Sparkles, Loader2, Upload, ArrowRight, Hash, Cpu, Layers, Activity,
          Image as ImageIcon, FlaskConical, Thermometer, Zap, CheckCircle2, AlertTriangle } from 'lucide-react';
 import axios from 'axios';
+import SampleImageSelector from '../components/SampleImageSelector';
 
 const API = 'http://localhost:8000';
 
@@ -268,6 +269,33 @@ export default function VaeView() {
           </div>
         </motion.div>
       </div>
+
+      {/* Preset Test Samples for VAE */}
+      <SampleImageSelector
+        onSelectSample={(sample, file) => {
+          setSelectedFile(file);
+          setPreviewUrl(sample.image);
+          setReconstructedUrl(null);
+          // Auto-trigger VAE reconstruction
+          if (file) {
+            setIsReconstructing(true);
+            const formData = new FormData();
+            formData.append('file', file);
+            axios.post(`${API}/api/vae/reconstruct`, formData)
+              .then(res => setReconstructedUrl(res.data.reconstructed_image))
+              .catch(err => console.error(err))
+              .finally(() => setIsReconstructing(false));
+          }
+          // Also preselect matching class in CVAE if available
+          if (sample.expected_class) {
+            const matchCls = SAFETY_CLASSES.find(c => c.label.toLowerCase() === sample.expected_class.toLowerCase());
+            if (matchCls) setSelectedClass(matchCls);
+          }
+        }}
+        filterModel="vae"
+        title="Sample Images For Testing VAE Reconstruction"
+        subtitle="Select any test construction image below to compress into latent space and reconstruct with ConvVAE."
+      />
 
       {/* Two-mode Inference: Generate + Reconstruct */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">

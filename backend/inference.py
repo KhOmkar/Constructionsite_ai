@@ -131,6 +131,9 @@ class ModelInferenceManager:
             transforms.Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225])
         ])
 
+        self._cached_preset_samples = None
+        self._cached_sample_bytes = {}
+
     def _tensor_to_base64(self, tensor: torch.Tensor) -> str:
         tensor = tensor.detach().cpu().squeeze(0)
         if tensor.min() < 0:
@@ -375,6 +378,221 @@ class ModelInferenceManager:
             "accuracy_percentage": round(accuracy * 100, 1),
             "samples": results
         }
+
+    # --------------------------------------------------------------------------
+    # Curated Preset Test Samples (For Dashboard & All Models)
+    # --------------------------------------------------------------------------
+    def get_preset_samples(self):
+        """
+        Returns 8 curated real-world construction test samples spanning PPE compliance,
+        violations, machinery, excavation, structural progress, and worker crews.
+        Caches results in memory for zero-latency instant access.
+        """
+        if self._cached_preset_samples is not None:
+            return self._cached_preset_samples
+
+        presets = []
+        samples_spec = [
+            {
+                "id": "sample-hardhat",
+                "title": "Hardhat PPE Compliant",
+                "category": "PPE Compliance",
+                "badge": "99.1% Confidence",
+                "badge_color": "emerald",
+                "type": "crop",
+                "pattern": "*004063*",
+                "line_idx": 1,
+                "default_stage": 1,
+                "default_days": 15,
+                "desc": "Active site worker wearing certified high-impact safety hardhat.",
+                "recommended_models": ["ae", "vae"],
+                "expected_class": "Hardhat",
+                "expected_status": "SAFE COMPLIANT"
+            },
+            {
+                "id": "sample-nohardhat",
+                "title": "Unprotected Head (NO-Hardhat)",
+                "category": "Safety Violation",
+                "badge": "99.8% Violation",
+                "badge_color": "rose",
+                "type": "crop",
+                "pattern": "*IMG_0871_mp4-11*",
+                "line_idx": 1,
+                "default_stage": 1,
+                "default_days": 15,
+                "desc": "Severe OSHA non-compliance: worker inside hazard zone without head protection.",
+                "recommended_models": ["ae", "vae"],
+                "expected_class": "NO-Hardhat",
+                "expected_status": "SAFETY VIOLATION"
+            },
+            {
+                "id": "sample-vest",
+                "title": "High-Vis Safety Vest",
+                "category": "PPE Compliance",
+                "badge": "97.4% Vest PPE",
+                "badge_color": "emerald",
+                "type": "full",
+                "pattern": "*3e7e40981ddd*",
+                "default_stage": 2,
+                "default_days": 30,
+                "desc": "High-visibility fluorescent vest with retroreflective safety bands.",
+                "recommended_models": ["ae", "vae"],
+                "expected_class": "Safety Vest",
+                "expected_status": "SAFE COMPLIANT"
+            },
+            {
+                "id": "sample-machinery",
+                "title": "Heavy Hydraulic Excavator",
+                "category": "Site Equipment",
+                "badge": "96.1% Machinery",
+                "badge_color": "amber",
+                "type": "full",
+                "pattern": "*construction-651-*",
+                "default_stage": 0,
+                "default_days": 30,
+                "desc": "Heavy earthmoving excavator operating in active excavation boundary.",
+                "recommended_models": ["ae", "gan", "vae"],
+                "expected_class": "machinery",
+                "expected_status": "SITE EQUIPMENT"
+            },
+            {
+                "id": "sample-excavation",
+                "title": "Groundwork & Trench Excavation",
+                "category": "Earthwork Phase",
+                "badge": "Stage 0: Groundwork",
+                "badge_color": "cyan",
+                "type": "full",
+                "pattern": "*002551*",
+                "default_stage": 0,
+                "default_days": 45,
+                "desc": "Initial site grading, trenching, and ground preparation for foundations.",
+                "recommended_models": ["transformer", "ae", "vae"],
+                "expected_class": "machinery",
+                "expected_status": "SITE EQUIPMENT"
+            },
+            {
+                "id": "sample-structural",
+                "title": "Structural Framing & Crane Zone",
+                "category": "Superstructure",
+                "badge": "Stage 2: Structural",
+                "badge_color": "indigo",
+                "type": "full",
+                "pattern": "*0_jpg.rf.2ff49f74309118f1*",
+                "default_stage": 2,
+                "default_days": 60,
+                "desc": "High-rise structural steel framework with overhead crane operations.",
+                "recommended_models": ["transformer", "gan", "ae"],
+                "expected_class": "machinery",
+                "expected_status": "SITE EQUIPMENT"
+            },
+            {
+                "id": "sample-worker-crew",
+                "title": "Active Site Personnel Crew",
+                "category": "Field Crew",
+                "badge": "Worker Crew",
+                "badge_color": "indigo",
+                "type": "full",
+                "pattern": "*RPReplay_Final1667001201_MP4-100*",
+                "default_stage": 1,
+                "default_days": 30,
+                "desc": "Multi-worker construction team operating in coordinated work zones.",
+                "recommended_models": ["ae", "vae", "transformer"],
+                "expected_class": "Person",
+                "expected_status": "WORKER (PPE DETECTED)"
+            },
+            {
+                "id": "sample-site-overview",
+                "title": "Wide Construction Perimeter",
+                "category": "Digital Twin",
+                "badge": "Wide Panorama",
+                "badge_color": "cyan",
+                "type": "full",
+                "pattern": "*2008_008320*",
+                "default_stage": 1,
+                "default_days": 45,
+                "desc": "Panoramic spatial overview for hazard heatmaps and progress modeling.",
+                "recommended_models": ["transformer", "gan", "ae"],
+                "expected_class": "machinery",
+                "expected_status": "SITE EQUIPMENT"
+            }
+        ]
+
+        img_dir = os.path.join(DATASET_PATH, "test", "images")
+        lbl_dir = os.path.join(DATASET_PATH, "test", "labels")
+
+        for item in samples_spec:
+            matches = glob.glob(os.path.join(img_dir, item["pattern"] + ".jpg"))
+            if not matches:
+                continue
+            img_path = matches[0]
+            stem = os.path.splitext(os.path.basename(img_path))[0]
+
+            try:
+                if item["type"] == "crop":
+                    lbl_path = os.path.join(lbl_dir, f"{stem}.txt")
+                    with open(lbl_path) as f:
+                        lines = f.readlines()
+                    parts = lines[item["line_idx"]].strip().split()
+                    xc, yc, bw, bh = map(float, parts[1:])
+                    with Image.open(img_path) as im:
+                        w, h = im.size
+                        x1 = max(0, int((xc - bw / 2) * w))
+                        y1 = max(0, int((yc - bh / 2) * h))
+                        x2 = min(w, int((xc + bw / 2) * w))
+                        y2 = min(h, int((yc + bh / 2) * h))
+                        crop = im.convert("RGB").crop((x1, y1, x2, y2))
+
+                        full_buf = io.BytesIO()
+                        crop.resize((256, 256)).save(full_buf, format="JPEG", quality=92)
+                        raw_bytes = full_buf.getvalue()
+                        img_b64 = "data:image/jpeg;base64," + base64.b64encode(raw_bytes).decode("utf-8")
+
+                        thumb_buf = io.BytesIO()
+                        crop.resize((96, 96)).save(thumb_buf, format="JPEG", quality=85)
+                        thumb_b64 = "data:image/jpeg;base64," + base64.b64encode(thumb_buf.getvalue()).decode("utf-8")
+                else:
+                    with Image.open(img_path) as im:
+                        full_buf = io.BytesIO()
+                        im.convert("RGB").resize((256, 256)).save(full_buf, format="JPEG", quality=90)
+                        raw_bytes = full_buf.getvalue()
+                        img_b64 = "data:image/jpeg;base64," + base64.b64encode(raw_bytes).decode("utf-8")
+
+                        thumb_buf = io.BytesIO()
+                        im.convert("RGB").resize((96, 96)).save(thumb_buf, format="JPEG", quality=85)
+                        thumb_b64 = "data:image/jpeg;base64," + base64.b64encode(thumb_buf.getvalue()).decode("utf-8")
+
+                # Save raw bytes for instant inference without decoding base64 repeatedly
+                self._cached_sample_bytes[item["id"]] = raw_bytes
+
+                presets.append({
+                    "id": item["id"],
+                    "title": item["title"],
+                    "category": item["category"],
+                    "badge": item["badge"],
+                    "badge_color": item["badge_color"],
+                    "description": item["desc"],
+                    "thumbnail": thumb_b64,
+                    "image": img_b64,
+                    "default_stage": item["default_stage"],
+                    "default_days": item["default_days"],
+                    "expected_class": item["expected_class"],
+                    "expected_status": item["expected_status"],
+                    "recommended_models": item["recommended_models"]
+                })
+            except Exception as e:
+                print(f"Preset load error on {item['id']}: {e}")
+                continue
+
+        self._cached_preset_samples = presets
+        return presets
+
+    def get_sample_bytes(self, sample_id: str) -> bytes:
+        """Retrieves raw JPEG bytes for a specific preset sample."""
+        if sample_id in self._cached_sample_bytes:
+            return self._cached_sample_bytes[sample_id]
+        # Ensure presets are loaded
+        self.get_preset_samples()
+        return self._cached_sample_bytes.get(sample_id, None)
 
     # --------------------------------------------------------------------------
     # Other Generative & Simulation Models
