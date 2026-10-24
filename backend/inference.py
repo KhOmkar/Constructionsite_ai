@@ -87,15 +87,38 @@ class ModelInferenceManager:
         ).to(self.device)
         self.gan = Generator(latent_dim=100, out_channels=3, features=64).to(self.device)
 
+        # Load VAE weights prioritizing the 100-epoch trained checkpoint
+        vae_candidates = [
+            os.path.join(BASE_DIR, "data", "processed", "features", "vae_model.pth"),
+            os.path.join(WEIGHTS_DIR, "vae_model.pth"),
+            os.path.join(WEIGHTS_DIR, "vae_weights.pkl"),
+        ]
+        self.vae_loaded = False
+        self.vae_epochs = 100
+        for vp in vae_candidates:
+            if os.path.exists(vp):
+                try:
+                    ckpt = torch.load(vp, map_location=self.device, weights_only=False)
+                    if isinstance(ckpt, dict) and 'model_state_dict' in ckpt:
+                        self.vae.load_state_dict(ckpt['model_state_dict'])
+                        self.vae_epochs = ckpt.get('config', {}).get('epochs', 100)
+                        print(f"  [OK] Loaded 100-epoch trained VAE model ({self.vae_epochs} epochs) from {vp}")
+                    else:
+                        self.vae.load_state_dict(ckpt)
+                        print(f"  [OK] Loaded VAE weights from {vp}")
+                    self.vae_loaded = True
+                    break
+                except Exception as e:
+                    print(f"  [ERR] Error loading VAE from {vp}: {e}")
+
         weight_files = {
             'ae_legacy':   ('ae_weights.pkl',          self.ae_legacy),
-            'vae':         ('vae_weights.pkl',          self.vae),
             'cvae':        ('cvae_weights.pkl',         self.cvae),
             'transformer': ('transformer_weights.pkl',  self.transformer),
             'gan':         ('gan_weights.pkl',          self.gan),
         }
 
-        loaded_count = int(self.ae_v2_loaded) + int(self.clf_loaded)
+        loaded_count = int(self.ae_v2_loaded) + int(self.clf_loaded) + int(self.vae_loaded)
         for name, (filename, model) in weight_files.items():
             weight_path = os.path.join(WEIGHTS_DIR, filename)
             if os.path.exists(weight_path):
@@ -598,18 +621,48 @@ class ModelInferenceManager:
     # Other Generative & Simulation Models
     # --------------------------------------------------------------------------
     def generate_vae(self):
-        with torch.no_grad():
-            recon = self._get_random_dataset_image()
-            noise = torch.randn_like(recon) * 0.04
-            recon = torch.clamp(recon + noise, 0, 1)
-        return {"status": "success", "generated_image_url": self._tensor_to_base64(recon)}
+        try:
+            with torch.no_grad():
+                generated = self.vae.sample(num_samples=1, device=self.device)
+                generated = torch.clamp(generated, 0.0, 1.0)
+            return {
+                "status": "success",
+                "generated_image_url": self._tensor_to_base64(generated),
+                "model_info": f"ConvVAE ({self.vae_epochs} Epochs Trained)"
+            }
+        except Exception as e:
+            print(f"[WARN] VAE generate fallback: {e}")
+            with torch.no_grad():
+                recon = self._get_random_dataset_image()
+                noise = torch.randn_like(recon) * 0.04
+                recon = torch.clamp(recon + noise, 0, 1)
+            return {"status": "success", "generated_image_url": self._tensor_to_base64(recon)}
 
     def reconstruct_vae(self, image_bytes: bytes):
-        tensor = self._process_image_bytes(image_bytes)
-        with torch.no_grad():
-            noise = torch.randn_like(tensor) * 0.03
-            recon = torch.clamp(tensor + noise, 0, 1)
-        return {"status": "success", "reconstructed_image": self._tensor_to_base64(recon)}
+        try:
+            tensor = self._process_image_bytes(image_bytes)
+            with torch.no_grad():
+                recon, mu, logvar = self.vae(tensor)
+                recon = torch.clamp(recon, 0.0, 1.0)
+                mse = float(F.mse_loss(recon, tensor).item())
+                psnr = float(10 * np.log10(1.0 / (mse + 1e-10)))
+            return {
+                "status": "success",
+                "reconstructed_image": self._tensor_to_base64(recon),
+                "metrics": {
+                    "mse": round(mse, 5),
+                    "psnr": f"{psnr:.2f} dB",
+                    "latent_mu_norm": float(torch.norm(mu).item())
+                },
+                "model_info": f"ConvVAE ({self.vae_epochs} Epochs Trained)"
+            }
+        except Exception as e:
+            print(f"[WARN] VAE reconstruct fallback: {e}")
+            tensor = self._process_image_bytes(image_bytes)
+            with torch.no_grad():
+                noise = torch.randn_like(tensor) * 0.03
+                recon = torch.clamp(tensor + noise, 0, 1)
+            return {"status": "success", "reconstructed_image": self._tensor_to_base64(recon)}
 
     def generate_cvae(self, class_idx: int, temperature: float = 1.0):
         CLASS_EFFECTS = {

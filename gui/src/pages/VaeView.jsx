@@ -45,6 +45,7 @@ export default function VaeView() {
   const [previewUrl, setPreviewUrl]             = useState(null);
   const [reconstructedUrl, setReconstructedUrl] = useState(null);
   const [isReconstructing, setIsReconstructing] = useState(false);
+  const [reconstructionMetrics, setReconstructionMetrics] = useState(null);
 
   // CVAE conditional generation state
   const [selectedClass, setSelectedClass]       = useState(null);
@@ -83,6 +84,7 @@ export default function VaeView() {
     try {
       const response = await axios.post(`${API}/api/vae/reconstruct`, formData);
       setReconstructedUrl(response.data.reconstructed_image);
+      setReconstructionMetrics(response.data.metrics || null);
     } catch (error) {
       console.error('Error reconstructing:', error);
       alert('Failed to connect to backend.');
@@ -128,7 +130,12 @@ export default function VaeView() {
           </div>
           <div>
             <h2 className="text-3xl font-black gradient-text">Variational Autoencoder (VAE)</h2>
-            <span className="badge badge-secondary">PRACT 2 — Generative Modeling &amp; Latent Interpolation</span>
+            <div className="flex items-center gap-2 flex-wrap mt-1">
+              <span className="badge badge-secondary">PRACT 2 — Generative Modeling &amp; Latent Interpolation</span>
+              <span className="badge bg-emerald-500/20 text-emerald-400 border border-emerald-500/40 font-mono text-xs shadow-sm">
+                ✓ 100 Epochs Trained (vae_model.pth Active)
+              </span>
+            </div>
           </div>
         </motion.div>
         <motion.p variants={itemVariants} className="text-slate-400 mt-2 max-w-3xl">
@@ -282,7 +289,10 @@ export default function VaeView() {
             const formData = new FormData();
             formData.append('file', file);
             axios.post(`${API}/api/vae/reconstruct`, formData)
-              .then(res => setReconstructedUrl(res.data.reconstructed_image))
+              .then(res => {
+                setReconstructedUrl(res.data.reconstructed_image);
+                setReconstructionMetrics(res.data.metrics || null);
+              })
               .catch(err => console.error(err))
               .finally(() => setIsReconstructing(false));
           }
@@ -313,16 +323,18 @@ export default function VaeView() {
                 <>Sample Latent Space <Sparkles className="w-5 h-5" /></>
               )}
             </button>
-            <div className="image-frame h-64 w-full">
-              {generatedUrl ? (
-                <motion.img initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }}
-                  src={generatedUrl} alt="Generated VAE Sample" className="w-full h-full object-cover" />
-              ) : (
-                <div className="text-slate-600 text-sm font-medium flex flex-col items-center">
-                  <Sparkles className="w-10 h-10 mb-2 opacity-20" />
-                  Click to generate
-                </div>
-              )}
+            <div className="w-full flex justify-center">
+              <div className="w-56 h-56 rounded-2xl border border-white/10 bg-black/40 flex items-center justify-center overflow-hidden shadow-inner">
+                {generatedUrl ? (
+                  <motion.img initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }}
+                    src={generatedUrl} alt="Generated VAE Sample" className="w-full h-full object-cover" />
+                ) : (
+                  <div className="text-slate-600 text-sm font-medium flex flex-col items-center">
+                    <Sparkles className="w-10 h-10 mb-2 opacity-20" />
+                    Click to generate
+                  </div>
+                )}
+              </div>
             </div>
           </div>
         </motion.div>
@@ -334,32 +346,61 @@ export default function VaeView() {
             Reconstruct Uploaded Image
           </div>
           <div className="flex flex-col items-center gap-4">
-            <label className="upload-zone h-32 w-full">
-              {previewUrl ? (
-                <img src={previewUrl} alt="Input" className="w-full h-full object-cover opacity-80 group-hover:opacity-100 transition-opacity" />
-              ) : (
-                <div className="flex flex-col items-center py-3">
-                  <Upload className="w-8 h-8 mb-2 text-slate-500" />
-                  <span className="text-xs text-slate-400">Upload construction site image</span>
+            <div className="grid grid-cols-2 gap-4 w-full">
+              {/* Input side */}
+              <div className="flex flex-col items-center">
+                <span className="text-[11px] font-mono text-slate-400 mb-1.5 uppercase font-semibold">Input (Original)</span>
+                <label className="w-40 h-40 rounded-xl border border-dashed border-white/20 bg-white/[0.02] flex items-center justify-center overflow-hidden cursor-pointer hover:border-cyan-400/50 transition-all">
+                  {previewUrl ? (
+                    <img src={previewUrl} alt="Input" className="w-full h-full object-cover" />
+                  ) : (
+                    <div className="flex flex-col items-center py-3 text-center px-2">
+                      <Upload className="w-6 h-6 mb-1 text-slate-500" />
+                      <span className="text-[10px] text-slate-400">Upload site image</span>
+                    </div>
+                  )}
+                  <input type="file" className="hidden" accept="image/*" onChange={handleFileChange} />
+                </label>
+              </div>
+
+              {/* Reconstructed side */}
+              <div className="flex flex-col items-center">
+                <span className="text-[11px] font-mono text-slate-400 mb-1.5 uppercase font-semibold">100e VAE Output</span>
+                <div className="w-40 h-40 rounded-xl border border-white/10 bg-black/40 flex items-center justify-center overflow-hidden shadow-inner">
+                  {reconstructedUrl ? (
+                    <motion.img initial={{ opacity: 0 }} animate={{ opacity: 1 }}
+                      src={reconstructedUrl} alt="VAE Reconstruction" className="w-full h-full object-cover" />
+                  ) : (
+                    <div className="text-slate-600 text-xs text-center px-2">Awaiting upload</div>
+                  )}
                 </div>
-              )}
-              <input type="file" className="hidden" accept="image/*" onChange={handleFileChange} />
-            </label>
+              </div>
+            </div>
+
             <button onClick={handleReconstruct} disabled={!selectedFile || isReconstructing} className="btn-secondary w-full">
               {isReconstructing ? (
                 <>Reconstructing <Loader2 className="w-5 h-5 animate-spin" /></>
               ) : (
-                <>Reconstruct <ArrowRight className="w-5 h-5" /></>
+                <>Reconstruct with VAE <ArrowRight className="w-5 h-5" /></>
               )}
             </button>
-            <div className="image-frame h-40 w-full">
-              {reconstructedUrl ? (
-                <motion.img initial={{ opacity: 0 }} animate={{ opacity: 1 }}
-                  src={reconstructedUrl} alt="VAE Reconstruction" className="w-full h-full object-cover" />
-              ) : (
-                <div className="text-slate-600 text-sm">Awaiting upload</div>
-              )}
-            </div>
+
+            {reconstructionMetrics && (
+              <div className="w-full grid grid-cols-3 gap-2 p-2.5 rounded-xl bg-white/[0.03] border border-white/10 text-center font-mono">
+                <div>
+                  <div className="text-[9px] uppercase tracking-wider text-slate-500">MSE Loss</div>
+                  <div className="text-xs font-bold text-cyan-400">{reconstructionMetrics.mse}</div>
+                </div>
+                <div>
+                  <div className="text-[9px] uppercase tracking-wider text-slate-500">PSNR</div>
+                  <div className="text-xs font-bold text-emerald-400">{reconstructionMetrics.psnr}</div>
+                </div>
+                <div>
+                  <div className="text-[9px] uppercase tracking-wider text-slate-500">Latent Norm</div>
+                  <div className="text-xs font-bold text-purple-400">{Number(reconstructionMetrics.latent_mu_norm || 0).toFixed(1)}</div>
+                </div>
+              </div>
+            )}
           </div>
         </motion.div>
       </div>

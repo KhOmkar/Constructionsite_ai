@@ -33,8 +33,9 @@ def read_root():
     return {
         "status": "online",
         "service": "Construction Site AI Digital Twin API",
-        "models": ["AutoencoderV2", "EncoderClassifier", "VAE", "CVAE", "GAN", "Transformer"],
-        "device": str(inference_manager.device)
+        "models": ["AutoencoderV2", "EncoderClassifier", f"VAE ({inference_manager.vae_epochs} Epochs)", "CVAE", "GAN", "Transformer"],
+        "device": str(inference_manager.device),
+        "vae_epochs": inference_manager.vae_epochs
     }
 
 
