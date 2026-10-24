@@ -493,23 +493,47 @@ export default function Dashboard() {
                     {/* Transformer Result */}
                     {activeModel === 'transformer' && (
                       <div className="space-y-4">
-                        <div className="grid grid-cols-2 gap-4">
-                          <div className="bg-slate-900/80 rounded-xl p-3 border border-cyan-500/30 text-center">
-                            <span className="text-[10px] font-mono font-bold text-cyan-300 uppercase block mb-2">Predicted Future Progression</span>
+                        {testResult.result.safety_audit && (
+                          <div className={`p-3 rounded-xl border flex items-center justify-between ${
+                            testResult.result.risk_score > 55
+                              ? 'bg-rose-500/20 border-rose-500/40 text-rose-300'
+                              : testResult.result.risk_score > 30
+                              ? 'bg-amber-500/20 border-amber-500/40 text-amber-300'
+                              : 'bg-emerald-500/20 border-emerald-500/40 text-emerald-300'
+                          }`}>
+                            <div className="text-xs font-bold uppercase tracking-wider">
+                              {testResult.result.risk_level}: {testResult.result.safety_audit.primary_rule}
+                            </div>
+                            <span className="text-xs font-mono font-bold">
+                              Risk: {testResult.result.risk_score}%
+                            </span>
+                          </div>
+                        )}
+                        <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                          <div className="bg-slate-900/80 rounded-xl p-2.5 border border-cyan-500/30 text-center">
+                            <span className="text-[10px] font-mono font-bold text-cyan-300 uppercase block mb-1.5">Site Input Feed</span>
                             <div className="aspect-square rounded-lg overflow-hidden bg-slate-950 border border-cyan-500/30">
-                              <img src={testResult.result.future_sim_image} alt="Future State" className="w-full h-full object-cover" />
+                              <img src={testResult.result.future_sim_image || selectedSample.image} alt="Site Feed" className="w-full h-full object-cover" />
                             </div>
                           </div>
-                          <div className="bg-slate-900/80 rounded-xl p-3 border border-rose-500/30 text-center">
-                            <span className="text-[10px] font-mono font-bold text-rose-300 uppercase block mb-2">Spatial Risk Hazard Map</span>
+                          <div className="bg-slate-900/80 rounded-xl p-2.5 border border-rose-500/30 text-center">
+                            <span className="text-[10px] font-mono font-bold text-rose-300 uppercase block mb-1.5">HUD Hazard Overlay</span>
                             <div className="aspect-square rounded-lg overflow-hidden bg-slate-950 border border-rose-500/30">
-                              <img src={testResult.result.risk_map_image} alt="Risk Map" className="w-full h-full object-cover" />
+                              <img src={testResult.result.hazard_overlay_image || testResult.result.risk_map_image} alt="Hazard Overlay" className="w-full h-full object-cover" />
+                            </div>
+                          </div>
+                          <div className="bg-slate-900/80 rounded-xl p-2.5 border border-indigo-500/30 text-center">
+                            <span className="text-[10px] font-mono font-bold text-indigo-300 uppercase block mb-1.5">8-Head Attention</span>
+                            <div className="aspect-square rounded-lg overflow-hidden bg-slate-950 border border-indigo-500/30">
+                              <img src={testResult.result.attention_map_image} alt="Attention Map" className="w-full h-full object-cover" />
                             </div>
                           </div>
                         </div>
                         <div className="p-3 bg-slate-900/80 rounded-xl border border-white/10 text-xs text-slate-300 flex items-center justify-between">
-                          <span>Digital Twin Horizon: <strong className="text-cyan-300 font-mono font-bold">+{deltaDays} Days</strong></span>
-                          <span className="text-xs font-mono text-emerald-400 font-bold">Attention Map Synthesized</span>
+                          <span>ViT Architecture: <strong className="text-cyan-300 font-mono font-bold">120 Epochs · F1: 0.846</strong></span>
+                          <Link to="/transformer" className="text-xs font-mono text-cyan-400 hover:text-cyan-300 font-bold flex items-center gap-1">
+                            Full Transformer Studio →
+                          </Link>
                         </div>
                       </div>
                     )}

@@ -13,6 +13,7 @@ from .cvae import ConvCVAE, CVAEEncoder, CVAEDecoder
 from .transformer_models import (
     VisionTransformerAutoencoder,
     ConstructionProgressTransformer,
+    ConstructionHazardViT,
     PatchEmbedding,
     TransformerEncoderBlock,
     CrossAttentionBlock
@@ -35,6 +36,7 @@ __all__ = [
     "CVAEDecoder",
     "VisionTransformerAutoencoder",
     "ConstructionProgressTransformer",
+    "ConstructionHazardViT",
     "PatchEmbedding",
     "TransformerEncoderBlock",
     "CrossAttentionBlock"

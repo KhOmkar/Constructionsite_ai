@@ -178,15 +178,22 @@ class CrossAttentionBlock(nn.Module):
             nn.Dropout(dropout),
         )
 
-    def forward(self, x, context):
+    def forward(self, x, context, return_attention=False):
         # Self-attention among visual patches
-        x = x + self.self_attn(self.norm_self(x), self.norm_self(x), self.norm_self(x))[0]
+        norm_x = self.norm_self(x)
+        self_out, self_weights = self.self_attn(norm_x, norm_x, norm_x, need_weights=return_attention)
+        x = x + self_out
+        
         # Cross-attention with conditioning context (BIM / Stage / Schedule)
         q = self.norm_q(x)
         kv = self.norm_kv(context)
-        x = x + self.cross_attn(q, kv, kv)[0]
+        cross_out, cross_weights = self.cross_attn(q, kv, kv, need_weights=return_attention)
+        x = x + cross_out
+        
         # Feed-forward
         x = x + self.mlp(self.norm_mlp(x))
+        if return_attention:
+            return x, self_weights, cross_weights
         return x
 
 
@@ -198,10 +205,12 @@ class ConstructionProgressTransformer(nn.Module):
         x_current: Tensor of shape [B, 3, 128, 128] (Current visual state)
         stage_idx: Tensor of shape [B] (Target construction stage ID: 0=Excavation, 1=Substructure, 2=Framing, 3=Facade, 4=Finishing)
         delta_days: Tensor of shape [B, 1] (Time horizon in days into the future)
+        return_attention: Optional bool, if True returns (x_future_sim, risk_map, attention_map)
     
     Outputs:
         x_future_sim: Tensor of shape [B, 3, 128, 128] (Simulated future site state)
         risk_map: Tensor of shape [B, 1, 128, 128] (Predicted spatial risk hazard map)
+        attention_map (optional): Tensor of shape [B, 1, 128, 128] (Normalized spatial attention map)
     """
     def __init__(
         self,
@@ -251,7 +260,7 @@ class ConstructionProgressTransformer(nn.Module):
         x = torch.einsum('nhwpqc->nchpwq', x)
         return x.reshape(shape=(B, out_channels, h * p, w * p))
 
-    def forward(self, x_current, stage_idx, delta_days):
+    def forward(self, x_current, stage_idx, delta_days, return_attention=False):
         # 1. Visual Tokenization
         vis_tokens = self.patch_embed(x_current) + self.pos_embed
 
@@ -262,8 +271,13 @@ class ConstructionProgressTransformer(nn.Module):
 
         # 3. Progress Simulation via Cross-Attention
         tokens = vis_tokens
+        attn_list = []
         for block in self.sim_blocks:
-            tokens = block(tokens, context)
+            if return_attention:
+                tokens, s_attn, c_attn = block(tokens, context, return_attention=True)
+                attn_list.append((s_attn, c_attn))
+            else:
+                tokens = block(tokens, context)
         tokens = self.norm(tokens)
 
         # 4. Predict Future Image & Risk Map
@@ -273,4 +287,140 @@ class ConstructionProgressTransformer(nn.Module):
         x_future_sim = torch.sigmoid(self.unpatchify(future_patches, self.in_channels))
         risk_map = torch.sigmoid(self.unpatchify(risk_patches, 1))
 
+        if return_attention:
+            # Extract spatial attention distribution from final block
+            last_self_attn = attn_list[-1][0]  # [B, 64, 64]
+            # Mean attention weight received by each patch from all other visual patches
+            patch_weights = last_self_attn.mean(dim=1).view(-1, 1, self.img_size // self.patch_size, self.img_size // self.patch_size)
+            # Bilinear upsample to 128x128 for visualization
+            attn_map = F.interpolate(patch_weights, size=(self.img_size, self.img_size), mode='bilinear', align_corners=False)
+            min_v = attn_map.amin(dim=(2, 3), keepdim=True)
+            max_v = attn_map.amax(dim=(2, 3), keepdim=True)
+            attn_norm = (attn_map - min_v) / (max_v - min_v + 1e-6)
+            return x_future_sim, risk_map, attn_norm
+
         return x_future_sim, risk_map
+
+
+class ConstructionHazardViT(nn.Module):
+    """
+    Vision Transformer (ViT) for Construction Site Hazard Intelligence & Spatial Saliency.
+    Trained on 2,801 real images with 10 Roboflow/OSHA classes:
+      0: Hardhat, 1: Mask, 2: NO-Hardhat, 3: NO-Mask, 4: NO-Safety Vest,
+      5: Person, 6: Safety Cone, 7: Safety Vest, 8: machinery, 9: vehicle
+    """
+    def __init__(
+        self,
+        img_size=128,
+        patch_size=16,
+        in_channels=3,
+        num_classes=10,
+        embed_dim=256,
+        depth=4,
+        num_heads=8,
+        mlp_ratio=4.0,
+        dropout=0.1
+    ):
+        super().__init__()
+        self.img_size = img_size
+        self.patch_size = patch_size
+        self.num_classes = num_classes
+        self.embed_dim = embed_dim
+        self.num_heads = num_heads
+
+        # 1. Patch Tokenizer
+        self.patch_embed = PatchEmbedding(img_size, patch_size, in_channels, embed_dim)
+        self.num_patches = self.patch_embed.num_patches
+
+        # 2. [CLS] token and 1D learnable position embeddings
+        self.cls_token = nn.Parameter(torch.zeros(1, 1, embed_dim))
+        self.pos_embed = nn.Parameter(torch.zeros(1, self.num_patches + 1, embed_dim))
+        self.pos_drop = nn.Dropout(dropout)
+        nn.init.trunc_normal_(self.cls_token, std=0.02)
+        nn.init.trunc_normal_(self.pos_embed, std=0.02)
+
+        # 3. Transformer Encoder Blocks (Pre-LayerNorm + MHSA + MLP)
+        self.blocks = nn.ModuleList([
+            TransformerEncoderBlock(embed_dim, num_heads, mlp_ratio, dropout)
+            for _ in range(depth)
+        ])
+        self.norm = nn.LayerNorm(embed_dim)
+
+        # 4. Multi-Label Classification Head
+        self.classifier = nn.Sequential(
+            nn.Linear(embed_dim, embed_dim // 2),
+            nn.GELU(),
+            nn.Dropout(dropout),
+            nn.Linear(embed_dim // 2, num_classes)
+        )
+
+        # 5. Spatial Hazard Density Decoder
+        self.hazard_decoder = nn.Sequential(
+            nn.ConvTranspose2d(embed_dim, 128, kernel_size=4, stride=2, padding=1),  # 8 -> 16
+            nn.BatchNorm2d(128),
+            nn.GELU(),
+            nn.ConvTranspose2d(128, 64, kernel_size=4, stride=2, padding=1),         # 16 -> 32
+            nn.BatchNorm2d(64),
+            nn.GELU(),
+            nn.ConvTranspose2d(64, 32, kernel_size=4, stride=2, padding=1),          # 32 -> 64
+            nn.BatchNorm2d(32),
+            nn.GELU(),
+            nn.ConvTranspose2d(32, 1, kernel_size=4, stride=2, padding=1),           # 64 -> 128
+            nn.Sigmoid()
+        )
+
+    def forward(self, x, return_attention=False):
+        B = x.shape[0]
+        # Patch Embeddings [B, 64, 256]
+        patches = self.patch_embed(x)
+
+        # Prepend [CLS] token -> [B, 65, 256]
+        cls_tokens = self.cls_token.expand(B, -1, -1)
+        tokens = torch.cat((cls_tokens, patches), dim=1)
+        tokens = self.pos_drop(tokens + self.pos_embed)
+
+        attn_weights_list = []
+        for block in self.blocks:
+            norm_t = block.norm1(tokens)
+            attn_out, attn_w = block.attn(norm_t, norm_t, norm_t, need_weights=return_attention)
+            tokens = tokens + attn_out
+            tokens = tokens + block.mlp(block.norm2(tokens))
+            if return_attention:
+                attn_weights_list.append(attn_w)
+
+        tokens = self.norm(tokens)
+
+        # [CLS] representation for multi-label safety prediction
+        cls_rep = tokens[:, 0]
+        logits = self.classifier(cls_rep)
+        probs = torch.sigmoid(logits)
+
+        # Spatial Tokens -> 2D Feature Map for Hazard Heatmap [B, 256, 8, 8]
+        spatial_tokens = tokens[:, 1:]  # [B, 64, 256]
+        grid_dim = int(self.num_patches ** 0.5)
+        feat_map = spatial_tokens.transpose(1, 2).reshape(B, self.embed_dim, grid_dim, grid_dim)
+        hazard_map = self.hazard_decoder(feat_map)  # [B, 1, 128, 128]
+
+        # OSHA Risk Level Score (0.0 to 1.0)
+        p_no_hardhat = probs[:, 2]
+        p_no_vest = probs[:, 4]
+        p_worker = probs[:, 5]
+        p_machinery = probs[:, 8]
+        p_vehicle = probs[:, 9]
+
+        machinery_presence = torch.clamp(p_machinery + p_vehicle, 0.0, 1.0)
+        proximity_risk = p_worker * machinery_presence
+        raw_risk = p_no_hardhat * 0.35 + p_no_vest * 0.35 + proximity_risk * 0.30
+        risk_score = torch.clamp(raw_risk, 0.0, 1.0).unsqueeze(1)
+
+        if return_attention and attn_weights_list:
+            last_attn = attn_weights_list[-1]  # [B, 65, 65]
+            cls_to_patches = last_attn[:, 0, 1:].reshape(B, 1, grid_dim, grid_dim)
+            upsampled_attn = F.interpolate(cls_to_patches, size=(self.img_size, self.img_size), mode='bilinear', align_corners=False)
+            min_v = upsampled_attn.amin(dim=(2, 3), keepdim=True)
+            max_v = upsampled_attn.amax(dim=(2, 3), keepdim=True)
+            norm_attn = (upsampled_attn - min_v) / (max_v - min_v + 1e-6)
+            return logits, probs, hazard_map, risk_score, norm_attn
+
+        return logits, probs, hazard_map, risk_score
+

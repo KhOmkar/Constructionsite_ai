@@ -164,6 +164,12 @@ async def transformer_simulate(
     return JSONResponse(content=result)
 
 
+@app.get("/api/transformer/presets")
+def transformer_presets():
+    """Return preset construction demo scenes for 1-click evaluation"""
+    return JSONResponse(content=inference_manager.get_preset_samples())
+
+
 from pydantic import BaseModel
 from typing import List, Optional
 
