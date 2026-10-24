@@ -39,6 +39,9 @@ print(f"GAN generate: status={r_gan['status']}, output_length={len(r_gan['genera
 r_vae = m.generate_vae()
 print(f"VAE generate: status={r_vae['status']}, output_length={len(r_vae['generated_image_url'])}")
 
+r_vae_rec = m.reconstruct_vae(test_bytes)
+print(f"VAE reconstruct (100e): status={r_vae_rec['status']}, Acc={r_vae_rec.get('accuracy_percentage')}%, PSNR={r_vae_rec.get('psnr')}, SSIM={r_vae_rec.get('ssim_score')}, KLD={r_vae_rec.get('kld_loss')}, Heatmap_len={len(r_vae_rec.get('heatmap_image', ''))}")
+
 r_tr = m.simulate_transformer(test_bytes, stage_idx=2, delta_days=30.0)
 print(f"Transformer sim: status={r_tr['status']}")
 

@@ -99,7 +99,7 @@ async def test_sample_by_id(
         sim_res = inference_manager.simulate_transformer(img_bytes, stage_idx, delta_days)
         return JSONResponse(content={"status": "success", "model": "transformer", "result": sim_res})
     elif model == "gan":
-        gan_res = inference_manager.generate_gan(image_bytes=img_bytes)
+        gan_res = inference_manager.generate_gan()
         return JSONResponse(content={"status": "success", "model": "gan", "result": gan_res})
     else:
         return JSONResponse(status_code=400, content={"status": "error", "message": f"Unknown model {model}"})
@@ -147,10 +147,9 @@ async def vae_generate_conditional(
 
 
 @app.post("/api/gan/generate")
-async def gan_generate(file: UploadFile = File(None)):
-    """Generate a high-fidelity synthetic image using GAN (optionally conditioned on uploaded image)"""
-    content = await file.read() if file else None
-    result = inference_manager.generate_gan(image_bytes=content)
+async def gan_generate():
+    """Generate a high-fidelity synthetic image using GAN"""
+    result = inference_manager.generate_gan()
     return JSONResponse(content=result)
 
 
@@ -282,6 +281,17 @@ async def chat_copilot(req: ChatRequest):
             "Explain the 4 Generative AI models"
         ]
     })
+
+
+@app.post("/api/reload")
+def reload_models():
+    """Dynamically reloads weights from disk for all models without restarting backend."""
+    global inference_manager
+    try:
+        inference_manager = ModelInferenceManager()
+        return JSONResponse(content={"status": "success", "message": "All model weights successfully reloaded from disk!"})
+    except Exception as e:
+        return JSONResponse(status_code=500, content={"status": "error", "message": str(e)})
 
 
 if __name__ == "__main__":

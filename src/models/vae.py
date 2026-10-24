@@ -147,12 +147,51 @@ class ConvVAE(nn.Module):
         return recon, mu, logvar
 
     @staticmethod
-    def loss_function(recon_x, x, mu, logvar, beta=1.0):
+    def loss_function(recon_x, x, mu, logvar, beta=1.0, normalize_pixels=True, free_bits=0.0):
         """
-        Evidence Lower Bound (ELBO) Loss:
-            L_total = MSE_Reconstruction(recon_x, x) + beta * KL_Divergence(q(z|x) || p(z))
+        Calibrated Evidence Lower Bound (ELBO) Loss with Beta-VAE formulation and KL Divergence balancing.
+
+        Formulation:
+            L_total = L_recon + beta * D_KL(q(z|x) || p(z))
+
+        When normalize_pixels=True (Recommended for training stability & sharp reconstructions):
+            - L_recon is computed as Mean Squared Error per pixel [0, 1].
+            - D_KL is normalized by image pixel count (B * C * H * W) so that the 256-d latent
+              regularization does not dominate the 49,152 image pixels (preventing blurry reconstructions).
+            - free_bits: Optional minimum threshold per latent dimension to prevent posterior collapse.
+
+        Args:
+            recon_x: Reconstructed tensor [B, C, H, W]
+            x: Ground truth input tensor [B, C, H, W]
+            mu: Mean vector [B, latent_dim]
+            logvar: Log-variance vector [B, latent_dim]
+            beta: Trade-off parameter (beta > 1 enforces disentanglement; beta ~ 0.0005-0.005 balances pixel MSE).
+            normalize_pixels: Whether to balance loss scales per pixel for high reconstruction accuracy.
+            free_bits: Minimum bits per latent dimension.
         """
-        recon_loss = F.mse_loss(recon_x, x, reduction='sum')
-        kld_loss = -0.5 * torch.sum(1 + logvar - mu.pow(2) - logvar.exp())
-        total_loss = recon_loss + beta * kld_loss
-        return total_loss, recon_loss, kld_loss
+        batch_size = x.size(0)
+        num_pixels = x.size(1) * x.size(2) * x.size(3)
+
+        # 1. Reconstruction Loss (L1 preserves sharp edges; MSE maintains global tonal balance)
+        if normalize_pixels:
+            l1_loss = F.l1_loss(recon_x, x, reduction='mean')
+            mse_loss = F.mse_loss(recon_x, x, reduction='mean')
+            recon_loss = l1_loss + 0.5 * mse_loss
+        else:
+            recon_loss = F.mse_loss(recon_x, x, reduction='sum') / batch_size
+
+        # 2. KL Divergence: -0.5 * sum(1 + log(sigma^2) - mu^2 - sigma^2)
+        kld_per_dim = -0.5 * (1 + logvar - mu.pow(2) - logvar.exp())
+        if free_bits > 0.0:
+            kld_per_dim = torch.clamp(kld_per_dim, min=free_bits)
+
+        kld_loss_raw = torch.sum(kld_per_dim) / batch_size
+
+        if normalize_pixels:
+            # Scaled KL divergence normalized to image dimensions
+            kld_scaled = kld_loss_raw / num_pixels
+            total_loss = recon_loss + beta * kld_scaled
+        else:
+            total_loss = recon_loss + beta * kld_loss_raw
+
+        return total_loss, recon_loss, kld_loss_raw
