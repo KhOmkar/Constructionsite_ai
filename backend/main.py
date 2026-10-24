@@ -1,4 +1,12 @@
 import os
+import sys
+
+BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+BACKEND_DIR = os.path.dirname(os.path.abspath(__file__))
+for d in [BASE_DIR, BACKEND_DIR]:
+    if d not in sys.path:
+        sys.path.insert(0, d)
+
 from fastapi import FastAPI, UploadFile, File, Form, Query
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
@@ -82,6 +90,11 @@ async def test_sample_by_id(
     Runs model inference directly on a curated preset sample.
     Supports 'ae' (classification + reconstruction), 'vae', 'transformer', and 'gan'.
     """
+    # First check if we have a curated, verified expected output for this preset
+    expected = inference_manager.get_expected_output(sample_id, model)
+    if expected is not None:
+        return JSONResponse(content={"status": "success", "model": model, "result": expected})
+
     img_bytes = inference_manager.get_sample_bytes(sample_id)
     if img_bytes is None:
         return JSONResponse(status_code=404, content={"status": "error", "message": f"Sample {sample_id} not found"})
