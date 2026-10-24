@@ -68,7 +68,7 @@ export default function TransformerView() {
   const [presets, setPresets] = useState([]);
   const [activePreset, setActivePreset] = useState(null);
   const [activeTab, setActiveTab] = useState('sim'); // 'sim' | 'charts' | 'math'
-  const [displayMode, setDisplayMode] = useState('tri'); // 'tri' | 'overlay_hazard' | 'overlay_attn'
+  const [displayMode, setDisplayMode] = useState('dual'); // 'dual' | 'overlay_attn'
   const [overlayOpacity, setOverlayOpacity] = useState(70);
   const [detectionThreshold, setDetectionThreshold] = useState(35);
   const [selectedRule, setSelectedRule] = useState('all');
@@ -515,20 +515,12 @@ export default function TransformerView() {
                   {/* Mode Buttons */}
                   <div className="flex bg-slate-100 p-1 rounded-xl border border-slate-200">
                     <button
-                      onClick={() => setDisplayMode('tri')}
+                      onClick={() => setDisplayMode('dual')}
                       className={`px-3 py-1.5 text-xs font-bold rounded-lg transition-all ${
-                        displayMode === 'tri' ? 'bg-white text-primary shadow-sm' : 'text-slate-600 hover:text-slate-800'
+                        displayMode === 'dual' || displayMode === 'tri' ? 'bg-white text-primary shadow-sm' : 'text-slate-600 hover:text-slate-800'
                       }`}
                     >
-                      Tri-Panel Split
-                    </button>
-                    <button
-                      onClick={() => setDisplayMode('overlay_hazard')}
-                      className={`px-3 py-1.5 text-xs font-bold rounded-lg transition-all ${
-                        displayMode === 'overlay_hazard' ? 'bg-white text-rose-600 shadow-sm' : 'text-slate-600 hover:text-slate-800'
-                      }`}
-                    >
-                      HUD Hazard Overlay
+                      Dual-Panel Comparison
                     </button>
                     <button
                       onClick={() => setDisplayMode('overlay_attn')}
@@ -541,9 +533,9 @@ export default function TransformerView() {
                   </div>
                 </div>
 
-                {/* ── Mode 1: Tri-Panel Split View ── */}
-                {displayMode === 'tri' && (
-                  <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+                {/* ── Mode 1: Dual-Panel Comparison View (Scene vs. 8-Head Attention) ── */}
+                {(displayMode === 'dual' || displayMode === 'tri') && (
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     {/* Panel 1: Original Site Scene */}
                     <div className="bg-slate-50 border border-slate-200 rounded-xl p-3 flex flex-col">
                       <div className="flex items-center justify-between mb-2">
@@ -555,7 +547,7 @@ export default function TransformerView() {
                           RGB 128²
                         </span>
                       </div>
-                      <div className="h-44 rounded-lg bg-slate-900 border border-slate-800 flex items-center justify-center overflow-hidden">
+                      <div className="h-52 rounded-lg bg-slate-900 border border-slate-800 flex items-center justify-center overflow-hidden">
                         {previewUrl ? (
                           <img src={previewUrl} alt="Original" className="w-full h-full object-contain p-1" />
                         ) : (
@@ -567,41 +559,18 @@ export default function TransformerView() {
                       </span>
                     </div>
 
-                    {/* Panel 2: Continuous 2D Spatial Hazard Density Map */}
-                    <div className="bg-slate-50 border border-slate-200 rounded-xl p-3 flex flex-col border-t-4 border-t-rose-500">
-                      <div className="flex items-center justify-between mb-2">
-                        <span className="text-xs font-bold text-slate-800 flex items-center gap-1.5">
-                          <AlertTriangle className="w-3.5 h-3.5 text-rose-500" />
-                          Spatial Hazard Map
-                        </span>
-                        <span className="text-[9px] font-bold px-1.5 py-0.5 rounded bg-rose-100 text-rose-800">
-                          Thermal Jet
-                        </span>
-                      </div>
-                      <div className="h-44 rounded-lg bg-slate-900 border border-slate-800 flex items-center justify-center overflow-hidden">
-                        {hazardMapUrl ? (
-                          <img src={hazardMapUrl} alt="Hazard Map" className="w-full h-full object-contain p-1" />
-                        ) : (
-                          <span className="text-xs text-slate-500">Awaiting Simulation</span>
-                        )}
-                      </div>
-                      <span className="text-[10px] text-slate-500 mt-2 text-center">
-                        Continuous 2D safety risk envelope
-                      </span>
-                    </div>
-
-                    {/* Panel 3: 8-Head Self-Attention Rollout */}
+                    {/* Panel 2: 8-Head Self-Attention Rollout */}
                     <div className="bg-slate-50 border border-slate-200 rounded-xl p-3 flex flex-col border-t-4 border-t-indigo-500">
                       <div className="flex items-center justify-between mb-2">
                         <span className="text-xs font-bold text-slate-800 flex items-center gap-1.5">
                           <Layers className="w-3.5 h-3.5 text-indigo-600" />
-                          Attention Rollout
+                          8-Head Attention Rollout
                         </span>
                         <span className="text-[9px] font-bold px-1.5 py-0.5 rounded bg-indigo-100 text-indigo-800">
                           8 Heads
                         </span>
                       </div>
-                      <div className="h-44 rounded-lg bg-slate-900 border border-slate-800 flex items-center justify-center overflow-hidden">
+                      <div className="h-52 rounded-lg bg-slate-900 border border-slate-800 flex items-center justify-center overflow-hidden">
                         {attentionMapUrl ? (
                           <img src={attentionMapUrl} alt="Attention" className="w-full h-full object-contain p-1" />
                         ) : (
@@ -609,38 +578,9 @@ export default function TransformerView() {
                         )}
                       </div>
                       <span className="text-[10px] text-slate-500 mt-2 text-center">
-                        ViT visual token self-attention weights
+                        ViT visual token cross-patch self-attention weights
                       </span>
                     </div>
-                  </div>
-                )}
-
-                {/* ── Mode 2: HUD Hazard Overlay View ── */}
-                {displayMode === 'overlay_hazard' && (
-                  <div className="space-y-3">
-                    <div className="relative w-full h-80 rounded-xl bg-slate-950 overflow-hidden border border-slate-800 flex items-center justify-center">
-                      {hazardOverlayUrl ? (
-                        <motion.img
-                          initial={{ opacity: 0 }}
-                          animate={{ opacity: 1 }}
-                          src={hazardOverlayUrl}
-                          alt="HUD Hazard Overlay"
-                          className="w-full h-full object-contain"
-                        />
-                      ) : (
-                        <span className="text-xs text-slate-500">Awaiting Simulation</span>
-                      )}
-                      <div className="absolute top-3 left-3 bg-slate-900/80 backdrop-blur-md px-3 py-1 rounded-lg border border-slate-700/60 text-white text-xs font-bold flex items-center gap-2">
-                        <span className="w-2 h-2 rounded-full bg-rose-500 animate-pulse" />
-                        Thermal Hazard Density HUD
-                      </div>
-                      <div className="absolute bottom-3 right-3 bg-slate-900/80 backdrop-blur-md px-3 py-1 rounded-lg border border-slate-700/60 text-slate-300 text-xs font-mono">
-                        Hotspot: {safetyAudit ? `${safetyAudit.hotspot_intensity}%` : 'N/A'}
-                      </div>
-                    </div>
-                    <p className="text-xs text-slate-500 text-center">
-                      The Vision Transformer projects the continuous 2D hazard density directly over the site scene, highlighting dangerous machinery corridors, trench edges, and unequipped workers.
-                    </p>
                   </div>
                 )}
 

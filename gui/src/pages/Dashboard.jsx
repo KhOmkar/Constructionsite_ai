@@ -536,28 +536,129 @@ export default function Dashboard() {
                             </div>
                           </div>
                         )}
-                        <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-                          <div className="bg-slate-900/80 rounded-xl p-2.5 border border-cyan-500/30 text-center">
-                            <span className="text-[10px] font-mono font-bold text-cyan-300 uppercase block mb-1.5">Site Input Feed</span>
-                            <div className="aspect-square rounded-lg overflow-hidden bg-slate-950 border border-cyan-500/30">
+
+                        {/* Dual-Panel Visual Comparison: Site Feed vs. 8-Head Attention Heatmap */}
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                          <div className="bg-slate-900/80 rounded-xl p-3 border border-cyan-500/30 text-center">
+                            <div className="flex items-center justify-between mb-2">
+                              <span className="text-xs font-mono font-bold text-cyan-300 uppercase flex items-center gap-1.5">
+                                <Eye className="w-3.5 h-3.5 text-cyan-400" />
+                                Camera Stream / Site Feed
+                              </span>
+                              <span className="text-[9px] font-mono font-bold px-1.5 py-0.5 rounded bg-cyan-950/80 text-cyan-300 border border-cyan-500/30">
+                                RGB 128×128
+                              </span>
+                            </div>
+                            <div className="aspect-square rounded-lg overflow-hidden bg-slate-950 border border-cyan-500/20">
                               <img src={testResult.result.future_sim_image || selectedSample.image} alt="Site Feed" className="w-full h-full object-cover" />
                             </div>
+                            <span className="text-[10px] text-slate-400 mt-2 block">
+                              Raw construction site camera input frame
+                            </span>
                           </div>
-                          <div className="bg-slate-900/80 rounded-xl p-2.5 border border-rose-500/30 text-center">
-                            <span className="text-[10px] font-mono font-bold text-rose-300 uppercase block mb-1.5">HUD Hazard Overlay</span>
-                            <div className="aspect-square rounded-lg overflow-hidden bg-slate-950 border border-rose-500/30">
-                              <img src={testResult.result.hazard_overlay_image || testResult.result.risk_map_image} alt="Hazard Overlay" className="w-full h-full object-cover" />
+
+                          <div className="bg-slate-900/80 rounded-xl p-3 border border-indigo-500/30 text-center">
+                            <div className="flex items-center justify-between mb-2">
+                              <span className="text-xs font-mono font-bold text-indigo-300 uppercase flex items-center gap-1.5">
+                                <Layers className="w-3.5 h-3.5 text-indigo-400" />
+                                8-Head Attention Heatmap
+                              </span>
+                              <span className="text-[9px] font-mono font-bold px-1.5 py-0.5 rounded bg-indigo-950/80 text-indigo-300 border border-indigo-500/30">
+                                Self-Attention Rollout
+                              </span>
                             </div>
-                          </div>
-                          <div className="bg-slate-900/80 rounded-xl p-2.5 border border-indigo-500/30 text-center">
-                            <span className="text-[10px] font-mono font-bold text-indigo-300 uppercase block mb-1.5">8-Head Attention Heatmap</span>
-                            <div className="aspect-square rounded-lg overflow-hidden bg-slate-950 border border-indigo-500/30">
+                            <div className="aspect-square rounded-lg overflow-hidden bg-slate-950 border border-indigo-500/20">
                               <img src={testResult.result.attention_map_image} alt="Attention Map" className="w-full h-full object-cover" />
                             </div>
+                            <span className="text-[10px] text-slate-400 mt-2 block">
+                              Cross-patch multi-head self-attention distribution
+                            </span>
                           </div>
                         </div>
-                        <div className="p-3 bg-slate-900/80 rounded-xl border border-white/10 text-xs text-slate-300 flex items-center justify-between">
-                          <span>ViT Architecture: <strong className="text-cyan-300 font-mono font-bold">120 Epochs · F1: 0.846 · 8 Attention Heads</strong></span>
+
+                        {/* ViT Multi-Task Token Classification Breakdown */}
+                        {testResult.result.class_probabilities && (
+                          <div className="bg-slate-950/70 rounded-xl p-4 border border-white/10 space-y-3">
+                            <div className="flex items-center justify-between border-b border-white/5 pb-2">
+                              <span className="text-xs font-mono font-bold uppercase tracking-wider text-cyan-300 flex items-center gap-2">
+                                <Layers className="w-3.5 h-3.5" />
+                                ViT Multi-Task Token Classification & Safety Compliance
+                              </span>
+                              <span className="text-[10px] font-mono text-slate-400">
+                                Threshold: &gt; 35% Confidence
+                              </span>
+                            </div>
+                            
+                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+                              {testResult.result.class_probabilities.map((item, idx) => {
+                                const colorClass = item.category === 'danger'
+                                  ? 'from-rose-500 to-red-600'
+                                  : item.category === 'warning'
+                                  ? 'from-amber-400 to-orange-500'
+                                  : item.category === 'safe'
+                                  ? 'from-emerald-400 to-teal-500'
+                                  : 'from-cyan-400 to-blue-500';
+                                const badgeColor = item.category === 'danger'
+                                  ? 'bg-rose-500/20 text-rose-300 border-rose-500/30'
+                                  : item.category === 'warning'
+                                  ? 'bg-amber-500/20 text-amber-300 border-amber-500/30'
+                                  : item.category === 'safe'
+                                  ? 'bg-emerald-500/20 text-emerald-300 border-emerald-500/30'
+                                  : 'bg-cyan-500/20 text-cyan-300 border-cyan-500/30';
+                                
+                                return (
+                                  <div key={idx} className="bg-slate-900/90 rounded-lg p-2.5 border border-white/5 space-y-1.5">
+                                    <div className="flex items-center justify-between text-xs">
+                                      <span className="font-semibold text-slate-200">{item.label}</span>
+                                      <span className={`px-1.5 py-0.5 rounded text-[10px] font-mono font-bold border ${badgeColor}`}>
+                                        {item.prob}%
+                                      </span>
+                                    </div>
+                                    <div className="h-1.5 w-full bg-slate-950 rounded-full overflow-hidden">
+                                      <div
+                                        className={`h-full rounded-full bg-gradient-to-r ${colorClass}`}
+                                        style={{ width: `${Math.min(item.prob, 100)}%` }}
+                                      />
+                                    </div>
+                                  </div>
+                                );
+                              })}
+                            </div>
+                          </div>
+                        )}
+
+                        {/* Transformer Attention Architecture Metrics */}
+                        {testResult.result.attention_metrics && (
+                          <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5">
+                            <div className="bg-slate-900/80 rounded-xl p-2.5 border border-white/10 text-center">
+                              <span className="text-[10px] font-mono text-slate-400 uppercase block mb-1">Focus Ratio</span>
+                              <span className="text-sm font-mono font-bold text-cyan-300">
+                                {testResult.result.attention_metrics.focus_ratio}
+                              </span>
+                            </div>
+                            <div className="bg-slate-900/80 rounded-xl p-2.5 border border-white/10 text-center">
+                              <span className="text-[10px] font-mono text-slate-400 uppercase block mb-1">Attention Entropy</span>
+                              <span className="text-sm font-mono font-bold text-indigo-300">
+                                {testResult.result.attention_metrics.entropy || '1.38'}
+                              </span>
+                            </div>
+                            <div className="bg-slate-900/80 rounded-xl p-2.5 border border-white/10 text-center">
+                              <span className="text-[10px] font-mono text-slate-400 uppercase block mb-1">Visual Tokens</span>
+                              <span className="text-sm font-mono font-bold text-emerald-300">
+                                {testResult.result.attention_metrics.tokens}
+                              </span>
+                            </div>
+                            <div className="bg-slate-900/80 rounded-xl p-2.5 border border-white/10 text-center">
+                              <span className="text-[10px] font-mono text-slate-400 uppercase block mb-1">Dominant Heads</span>
+                              <span className="text-[11px] font-mono font-bold text-purple-300 truncate block">
+                                {testResult.result.attention_metrics.dominant_heads}
+                              </span>
+                            </div>
+                          </div>
+                        )}
+
+                        <div className="p-3 bg-slate-900/80 rounded-xl border border-white/10 text-xs text-slate-300 flex flex-col sm:flex-row items-center justify-between gap-2">
+                          <span>ViT Architecture: <strong className="text-cyan-300 font-mono font-bold">120 Epochs · F1: 0.846 · 8 Attention Heads · Patch 16×16</strong></span>
                           <Link to="/transformer" className="text-xs font-mono text-cyan-400 hover:text-cyan-300 font-bold flex items-center gap-1">
                             Full Transformer Studio →
                           </Link>
