@@ -99,7 +99,7 @@ async def test_sample_by_id(
         sim_res = inference_manager.simulate_transformer(img_bytes, stage_idx, delta_days)
         return JSONResponse(content={"status": "success", "model": "transformer", "result": sim_res})
     elif model == "gan":
-        gan_res = inference_manager.generate_gan()
+        gan_res = inference_manager.generate_gan(image_bytes=img_bytes)
         return JSONResponse(content={"status": "success", "model": "gan", "result": gan_res})
     else:
         return JSONResponse(status_code=400, content={"status": "error", "message": f"Unknown model {model}"})
@@ -147,9 +147,10 @@ async def vae_generate_conditional(
 
 
 @app.post("/api/gan/generate")
-async def gan_generate():
-    """Generate a high-fidelity synthetic image using GAN"""
-    result = inference_manager.generate_gan()
+async def gan_generate(file: UploadFile = File(None)):
+    """Generate a high-fidelity synthetic image using GAN (optionally conditioned on uploaded image)"""
+    content = await file.read() if file else None
+    result = inference_manager.generate_gan(image_bytes=content)
     return JSONResponse(content=result)
 
 
