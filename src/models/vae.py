@@ -147,36 +147,63 @@ class ConvVAE(nn.Module):
         return recon, mu, logvar
 
     @staticmethod
+    def ssim_loss(img1, img2, window_size=7):
+        """
+        Differentiable Structural Similarity (SSIM) Loss.
+        Computes 1.0 - SSIM across local image patches to preserve fine geometric edges & textures.
+        """
+        channels = img1.size(1)
+        # 1D triangular/gaussian kernel approximation
+        kernel_1d = torch.tensor([0.06, 0.12, 0.20, 0.24, 0.20, 0.12, 0.06], device=img1.device, dtype=img1.dtype)
+        kernel_1d = kernel_1d / kernel_1d.sum()
+        kernel_2d = (kernel_1d.unsqueeze(1) @ kernel_1d.unsqueeze(0)).unsqueeze(0).unsqueeze(0)
+        kernel = kernel_2d.repeat(channels, 1, 1, 1)
+        pad = window_size // 2
+
+        mu1 = F.conv2d(img1, kernel, padding=pad, groups=channels)
+        mu2 = F.conv2d(img2, kernel, padding=pad, groups=channels)
+
+        mu1_sq = mu1.pow(2)
+        mu2_sq = mu2.pow(2)
+        mu1_mu2 = mu1 * mu2
+
+        sigma1_sq = F.conv2d(img1 * img1, kernel, padding=pad, groups=channels) - mu1_sq
+        sigma2_sq = F.conv2d(img2 * img2, kernel, padding=pad, groups=channels) - mu2_sq
+        sigma12   = F.conv2d(img1 * img2, kernel, padding=pad, groups=channels) - mu1_mu2
+
+        c1 = 0.01 ** 2
+        c2 = 0.03 ** 2
+
+        ssim_map = ((2 * mu1_mu2 + c1) * (2 * sigma12 + c2)) / ((mu1_sq + mu2_sq + c1) * (sigma1_sq + sigma2_sq + c2) + 1e-7)
+        return 1.0 - ssim_map.mean()
+
+    @staticmethod
     def loss_function(recon_x, x, mu, logvar, beta=1.0, normalize_pixels=True, free_bits=0.0):
         """
-        Calibrated Evidence Lower Bound (ELBO) Loss with Beta-VAE formulation and KL Divergence balancing.
+        Calibrated Evidence Lower Bound (ELBO) Loss with Structural SSIM + L1/MSE formulation.
 
         Formulation:
             L_total = L_recon + beta * D_KL(q(z|x) || p(z))
-
-        When normalize_pixels=True (Recommended for training stability & sharp reconstructions):
-            - L_recon is computed as Mean Squared Error per pixel [0, 1].
-            - D_KL is normalized by image pixel count (B * C * H * W) so that the 256-d latent
-              regularization does not dominate the 49,152 image pixels (preventing blurry reconstructions).
-            - free_bits: Optional minimum threshold per latent dimension to prevent posterior collapse.
+            L_recon = 0.5 * L_ssim + 0.3 * L1 + 0.2 * MSE
 
         Args:
             recon_x: Reconstructed tensor [B, C, H, W]
             x: Ground truth input tensor [B, C, H, W]
             mu: Mean vector [B, latent_dim]
             logvar: Log-variance vector [B, latent_dim]
-            beta: Trade-off parameter (beta > 1 enforces disentanglement; beta ~ 0.0005-0.005 balances pixel MSE).
+            beta: Trade-off parameter for KL divergence.
             normalize_pixels: Whether to balance loss scales per pixel for high reconstruction accuracy.
             free_bits: Minimum bits per latent dimension.
         """
         batch_size = x.size(0)
         num_pixels = x.size(1) * x.size(2) * x.size(3)
 
-        # 1. Reconstruction Loss (L1 preserves sharp edges; MSE maintains global tonal balance)
+        # 1. Multi-Component Reconstruction Loss (SSIM structural + L1 sharp edge + MSE stability)
         if normalize_pixels:
+            loss_ssim = ConvVAE.ssim_loss(recon_x, x)
             l1_loss = F.l1_loss(recon_x, x, reduction='mean')
             mse_loss = F.mse_loss(recon_x, x, reduction='mean')
-            recon_loss = l1_loss + 0.5 * mse_loss
+            recon_loss = 0.5 * loss_ssim + 0.3 * l1_loss + 0.2 * mse_loss
         else:
             recon_loss = F.mse_loss(recon_x, x, reduction='sum') / batch_size
 

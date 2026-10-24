@@ -225,7 +225,7 @@ def train(epochs=25, batch_size=64, lr=3e-4, warm_start=True, device="cpu"):
     try:
         # A. Loss Curve
         plt.figure(figsize=(10, 4.5))
-        plt.plot(history["train_loss"], label="Train Loss (L1 + 0.5*MSE)", color="#00f0ff", lw=2)
+        plt.plot(history["train_loss"], label="Train Loss (Structural SSIM + L1/MSE)", color="#00f0ff", lw=2)
         plt.plot(history["val_loss"], label="Val Loss", color="#a855f7", lw=2, linestyle="--")
         plt.title("Calibrated VAE Training Loss Curve", fontsize=13, fontweight="bold")
         plt.xlabel("Epoch")
