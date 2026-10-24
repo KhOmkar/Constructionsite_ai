@@ -139,19 +139,10 @@ def create_crisp_reconstruction(img: Image.Image, model_type="ae") -> Image.Imag
 
 def create_dcgan_synthetic(img: Image.Image) -> Image.Image:
     """
-    Creates an adversarial synthetic twin of the construction scene.
-    Simulates high-fidelity generator synthesis G(z) with neural texture mapping.
+    Shows the exact same input image with slight Gaussian blur.
     """
-    from PIL import ImageEnhance
     res = img.convert("RGB").resize((256, 256))
-    # Slight generative smoothing + unsharp detail synthesis
-    smooth = res.filter(ImageFilter.GaussianBlur(radius=0.4))
-    sharp = smooth.filter(ImageFilter.UnsharpMask(radius=1.4, percent=135, threshold=2))
-    # Generative contrast and color grading
-    enh_c = ImageEnhance.Contrast(sharp).enhance(1.08)
-    enh_col = ImageEnhance.Color(enh_c).enhance(1.06)
-    enh_b = ImageEnhance.Brightness(enh_col).enhance(1.02)
-    return enh_b
+    return res.filter(ImageFilter.GaussianBlur(radius=1.2))
 
 # 4 Key Showcase Samples
 SHOWCASE_DEFS = [
