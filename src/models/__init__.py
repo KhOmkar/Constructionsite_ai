@@ -10,12 +10,29 @@ from .autoencoder import (
 )
 from .vae import ConvVAE, VAEEncoder, VAEDecoder
 from .cvae import ConvCVAE, CVAEEncoder, CVAEDecoder
+from .gan import (
+    Generator,
+    Discriminator,
+    ConditionalGenerator,
+    ConditionalDiscriminator,
+    WGANGenerator,
+    WGANCritic,
+    slerp,
+    GAN_CATEGORIES,
+    NUM_GAN_CATEGORIES
+)
 from .transformer_models import (
     VisionTransformerAutoencoder,
-    ConstructionProgressTransformer,
+    ConstructionHazardViT,
     PatchEmbedding,
-    TransformerEncoderBlock,
-    CrossAttentionBlock
+    TransformerEncoderBlock
+)
+from .diffusion import (
+    UNetDiffusion,
+    GaussianDiffusion,
+    SinusoidalPositionalEmbeddings,
+    ResBlock,
+    SpatialSelfAttention
 )
 
 __all__ = [
@@ -33,9 +50,22 @@ __all__ = [
     "ConvCVAE",
     "CVAEEncoder",
     "CVAEDecoder",
+    "Generator",
+    "Discriminator",
+    "ConditionalGenerator",
+    "ConditionalDiscriminator",
+    "WGANGenerator",
+    "WGANCritic",
+    "slerp",
+    "GAN_CATEGORIES",
+    "NUM_GAN_CATEGORIES",
     "VisionTransformerAutoencoder",
-    "ConstructionProgressTransformer",
+    "ConstructionHazardViT",
     "PatchEmbedding",
     "TransformerEncoderBlock",
-    "CrossAttentionBlock"
+    "UNetDiffusion",
+    "GaussianDiffusion",
+    "SinusoidalPositionalEmbeddings",
+    "ResBlock",
+    "SpatialSelfAttention"
 ]

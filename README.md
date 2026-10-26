@@ -86,7 +86,7 @@ Our team has split the training responsibilities across GitHub:
 - **Key EDA findings:**
   - `Person` is the dominant class (~40% of bounding boxes)
   - `Safety Cone` and `Mask` are heavily underrepresented
-  - Spatial density analysis shows hazards cluster near machinery zones
+  - Spatial distribution analysis shows hazards cluster near machinery zones
   - Most images are outdoor daytime scenes (lighting diversity gap)
 
 ---

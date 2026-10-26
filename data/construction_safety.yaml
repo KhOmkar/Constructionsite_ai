@@ -1,20 +1,16 @@
-# ConstructionSite AI — YOLO Data Configuration
-# Corrected paths for local training
-
 names:
-  - Hardhat
-  - Mask
-  - NO-Hardhat
-  - NO-Mask
-  - NO-Safety Vest
-  - Person
-  - Safety Cone
-  - Safety Vest
-  - machinery
-  - vehicle
-
+- Hardhat
+- Mask
+- NO-Hardhat
+- NO-Mask
+- NO-Safety Vest
+- Person
+- Safety Cone
+- Safety Vest
+- machinery
+- vehicle
 nc: 10
-
-train: ../ConstructionSiteSafetyImageDatasetRoboflow/css-data/train/images
-val: ../ConstructionSiteSafetyImageDatasetRoboflow/css-data/valid/images
-test: ../ConstructionSiteSafetyImageDatasetRoboflow/css-data/test/images
+path: css-data
+test: test/images
+train: train/images
+val: valid/images

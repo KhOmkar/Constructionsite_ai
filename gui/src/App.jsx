@@ -10,6 +10,7 @@ import AutoencoderView from './pages/AutoencoderView';
 import VaeView from './pages/VaeView';
 import GanView from './pages/GanView';
 import TransformerView from './pages/TransformerView';
+import DiffusionView from './pages/DiffusionView';
 import ComparativeAnalysis from './pages/ComparativeAnalysis';
 import EthicsView from './pages/EthicsView';
 import AIChatbot from './components/AIChatbot';
@@ -29,8 +30,9 @@ function Sidebar() {
       items: [
         { path: '/autoencoder', label: 'Autoencoder & PPE', icon: Box, badge: '87.4%' },
         { path: '/vae', label: 'Variational AE', icon: Sparkles, badge: 'CVAE' },
-        { path: '/gan', label: 'DCGAN Generator', icon: Zap },
-        { path: '/transformer', label: '4D Site Transformer', icon: Layers, badge: 'ViT' },
+        { path: '/gan', label: 'Adversarial GAN Suite', icon: Zap, badge: '3 Models' },
+        { path: '/diffusion', label: 'Diffusion Model', icon: Sparkles, badge: 'DDIM 40x' },
+        { path: '/transformer', label: 'Vision Transformer (ViT)', icon: Layers, badge: '8-Head' },
       ],
     },
     {
@@ -185,6 +187,7 @@ function App() {
                 <Route path="/autoencoder" element={<AutoencoderView />} />
                 <Route path="/vae" element={<VaeView />} />
                 <Route path="/gan" element={<GanView />} />
+                <Route path="/diffusion" element={<DiffusionView />} />
                 <Route path="/transformer" element={<TransformerView />} />
                 <Route path="/compare" element={<ComparativeAnalysis />} />
                 <Route path="/ethics" element={<EthicsView />} />

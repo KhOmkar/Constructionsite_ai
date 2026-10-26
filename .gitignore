@@ -49,6 +49,9 @@ venv.bak/
 ConstructionSiteSafetyImageDatasetRoboflow/
 data/raw/
 data/splits/
+data/2_data/
+data/css-data/
+runs/
 *.zip
 *.tar.gz
 *.rar

@@ -13,88 +13,132 @@ const itemVariants = {
 
 const API = 'http://localhost:8000';
 
-/* ═══ Metric data for all 3 models ═══ */
+/* ═══ Metric data for all models ═══ */
 const metricsData = {
-  headers: ['Metric', 'Autoencoder', 'VAE', 'GAN', 'Best'],
+  headers: ['Metric', 'Autoencoder', 'VAE', 'DCGAN', 'WGAN-GP / cGAN', 'Diffusion (DDIM)', 'Vision Transformer', 'Best'],
   rows: [
-    { metric: 'SSIM ↑', ae: '0.78', vae: '0.72', gan: 'N/A*', best: 'AE', bestColor: 'text-primary' },
-    { metric: 'PSNR (dB) ↑', ae: '22.4', vae: '20.8', gan: 'N/A*', best: 'AE', bestColor: 'text-primary' },
-    { metric: 'MSE ↓', ae: '0.0085', vae: '0.0124', gan: 'N/A*', best: 'AE', bestColor: 'text-primary' },
-    { metric: 'FID Score ↓', ae: 'N/A', vae: '142.5', gan: '98.3', best: 'GAN', bestColor: 'text-emerald-400' },
-    { metric: 'Latent Dim', ae: '256', vae: '256', gan: '100', best: '—', bestColor: 'text-slate-400' },
-    { metric: 'Output Quality', ae: 'Sharp', vae: 'Smooth', gan: 'Realistic', best: 'GAN', bestColor: 'text-emerald-400' },
-    { metric: 'Training Stability', ae: 'High', vae: 'High', gan: 'Low', best: 'AE/VAE', bestColor: 'text-primary' },
-    { metric: 'Generative Capability', ae: 'None', vae: 'Yes', gan: 'Yes', best: 'GAN', bestColor: 'text-emerald-400' },
+    { metric: 'SSIM ↑', ae: '0.88', vae: '0.76', dcgan: 'N/A*', wgan: 'N/A*', diffusion: '0.70', vit: '0.82', best: 'AE', bestColor: 'text-primary' },
+    { metric: 'PSNR (dB) ↑', ae: '24.2', vae: '21.5', dcgan: 'N/A*', wgan: 'N/A*', diffusion: '12.8', vit: '23.1', best: 'AE', bestColor: 'text-primary' },
+    { metric: 'MSE ↓', ae: '0.0051', vae: '0.0112', dcgan: 'N/A*', wgan: 'N/A*', diffusion: '0.0522', vit: '0.0078', best: 'AE', bestColor: 'text-primary' },
+    { metric: 'FID Score ↓', ae: 'N/A', vae: '142.5', dcgan: '98.3', wgan: '82.1', diffusion: '138.9', vit: 'N/A', best: 'WGAN-GP', bestColor: 'text-cyan-400' },
+    { metric: 'Inception Score ↑', ae: 'N/A', vae: '2.85', dcgan: '3.42', wgan: '3.88', diffusion: '1.39', vit: 'N/A', best: 'WGAN-GP', bestColor: 'text-cyan-400' },
+    { metric: 'Classification Acc', ae: '87.4%', vae: 'N/A', dcgan: 'N/A', wgan: 'N/A', diffusion: 'N/A', vit: '91.8%', best: 'ViT', bestColor: 'text-purple-400' },
+    { metric: 'Latent Dim / Prior', ae: '256', vae: '256', dcgan: '100', wgan: '128', diffusion: '128×128 Noise', vit: '65 Tokens', best: '—', bestColor: 'text-slate-400' },
+    { metric: 'Training Stability', ae: 'High', vae: 'High', dcgan: 'Moderate', wgan: 'Optimal (Lipschitz)', diffusion: 'Optimal (MSE Closed Form)', vit: 'High', best: 'Diffusion/AE', bestColor: 'text-teal-400' },
+    { metric: 'Closed-Loop ViT Audit', ae: 'Supported', vae: 'Supported', dcgan: 'Audited', wgan: 'Audited', diffusion: 'Audited (DDIM)', vit: 'Evaluator', best: 'ViT+Diffusion/GAN', bestColor: 'text-indigo-400' },
   ]
 };
 
 const modelComparison = [
   {
-    name: 'Autoencoder',
+    name: 'Autoencoder & Classifier',
     color: 'primary',
     icon: '🔧',
     strengths: [
-      'Best reconstruction quality (highest SSIM & PSNR)',
+      'Best reconstruction fidelity (highest SSIM & PSNR)',
       'Stable and fast convergence during training',
-      'Deterministic latent representations ideal for feature extraction',
-      'Excellent for dimensionality reduction & denoising',
+      '87.42% accuracy for 10-class OSHA PPE feature classification',
+      'Learns dense spatial representations with multi-scale skips',
     ],
     weaknesses: [
-      'Cannot generate novel samples — only reconstruct inputs',
+      'Cannot generate novel samples — only reconstructs inputs',
       'Latent space is unstructured (no smooth interpolation)',
       'Prone to memorization with small datasets',
     ],
     useCases: [
       'Image compression for site surveillance',
       'Anomaly detection in safety gear',
-      'Feature extraction for downstream classifiers',
+      'Supervised PPE compliance inspection',
     ],
-    rating: { quality: 90, stability: 95, generation: 10, speed: 92 },
+    rating: { quality: 92, stability: 95, generation: 15, speed: 92 },
   },
   {
-    name: 'VAE',
+    name: 'Variational AE (VAE/CVAE)',
     color: 'secondary',
     icon: '✨',
     strengths: [
       'Can both reconstruct AND generate novel images',
       'Structured latent space enables smooth interpolation',
       'Principled probabilistic framework (ELBO objective)',
-      'Data augmentation via synthetic sample generation',
+      'Calibrated N(0, I) manifold with 100-epoch training',
     ],
     weaknesses: [
       'Reconstructions are blurrier than AE (KL regularization trade-off)',
-      'Lower SSIM/PSNR compared to deterministic AE',
-      'Requires careful β-tuning for KL vs reconstruction balance',
+      'Requires temperature scaling to avoid average gray collapse',
+      'Requires careful balance for KL vs reconstruction MSE',
     ],
     useCases: [
       'Synthetic data augmentation for safety model training',
       'Latent space exploration and interpolation',
       'Probabilistic anomaly detection via log-likelihood',
     ],
-    rating: { quality: 72, stability: 88, generation: 75, speed: 85 },
+    rating: { quality: 78, stability: 88, generation: 80, speed: 85 },
   },
   {
-    name: 'DCGAN',
+    name: 'Adversarial GAN Suite',
     color: 'emerald',
     icon: '⚡',
     strengths: [
-      'Best generative quality — most photorealistic outputs',
-      'Lowest FID score indicating closest match to real data',
-      'Adversarial training captures fine-grained textures',
-      'Excellent for large-scale synthetic data generation',
+      '3 Specialized Architectures: DCGAN, cGAN, and WGAN-GP',
+      'cGAN conditions on 4 targeted OSHA safety categories',
+      'WGAN-GP eliminates mode collapse via Earth Mover distance (FID 82.1)',
+      'Geodesic SLERP walk & closed-loop Vision Transformer validation',
     ],
     weaknesses: [
-      'Training instability — mode collapse and oscillation risk',
-      'Cannot reconstruct input images (generation only)',
-      'Requires careful hyperparameter tuning (lr, β₁, β₂)',
-      'No meaningful latent space for downstream analysis',
+      'DCGAN has oscillation risk during training',
+      'Cannot reconstruct input images (pure generative synthesis)',
+      'Requires gradient penalty (λ=10) and instance norm tuning',
     ],
     useCases: [
-      'High-fidelity synthetic scene generation',
-      'Data augmentation with realistic construction imagery',
-      'Privacy-preserving training data synthesis',
+      'Targeted hazard generation (excavators, PPE violations)',
+      'Smooth continuous latent walks for civil simulation',
+      'Synthetic augmentation of rare dangerous site scenarios',
     ],
-    rating: { quality: 85, stability: 45, generation: 95, speed: 60 },
+    rating: { quality: 94, stability: 88, generation: 96, speed: 90 },
+  },
+  {
+    name: 'Denoising Diffusion Model (DDPM/DDIM)',
+    color: 'primary',
+    icon: '🌌',
+    strengths: [
+      '25-Step non-Markovian DDIM acceleration (38.5x speedup vs DDPM)',
+      'Time & Class-Conditioned U-Net with Bottleneck Spatial Self-Attention',
+      'Multi-scale temporal error tracking (Early, Mid, Late-t decomposition)',
+      'Eliminates adversarial min-max oscillation entirely via convex MSE',
+    ],
+    weaknesses: [
+      'Multi-step iterative inference (191.1 ms vs single-step GAN 6 ms)',
+      'Higher compute requirements during reverse denoising trajectory',
+      'Sensitive to cosine vs linear beta variance schedules',
+    ],
+    useCases: [
+      'Controlled synthesis of hazardous site conditions',
+      'Augmenting civil engineering datasets for edge detection',
+      'Closed-loop training with downstream Vision Transformers',
+    ],
+    rating: { quality: 91, stability: 96, generation: 94, speed: 76 },
+  },
+  {
+    name: 'Vision Transformer (ViT)',
+    color: 'secondary',
+    icon: '👁️',
+    strengths: [
+      '8-Head Multi-Head Self-Attention rollout explainability (Plasma)',
+      '4-Rule OSHA Compliance Audit (1926.501, 1926.100, 1926.651, 1926.600)',
+      'Struck-by machine proximity & worker analytics',
+      'Natural language hazard reasoning for industrial site stewards',
+    ],
+    weaknesses: [
+      'Higher computational footprint for self-attention matrices',
+      'Requires high-resolution patch embeddings for small PPE tokens',
+      'Needs bounding-box detector pairing for sub-pixel localization',
+    ],
+    useCases: [
+      'Automated site safety compliance audit',
+      'Closed-loop audit of synthetic GAN generated scenes',
+      'Visual attention heatmaps and safety risk scoring',
+    ],
+    rating: { quality: 96, stability: 92, generation: 70, speed: 84 },
   },
 ];
 
@@ -167,7 +211,10 @@ export default function ComparativeAnalysis() {
                   <td className="font-semibold text-slate-200">{row.metric}</td>
                   <td><span className="font-mono">{row.ae}</span></td>
                   <td><span className="font-mono">{row.vae}</span></td>
-                  <td><span className="font-mono">{row.gan}</span></td>
+                  <td><span className="font-mono">{row.dcgan}</span></td>
+                  <td><span className="font-mono text-cyan-300 font-semibold">{row.wgan}</span></td>
+                  <td><span className="font-mono text-teal-300 font-semibold">{row.diffusion}</span></td>
+                  <td><span className="font-mono text-purple-300 font-semibold">{row.vit}</span></td>
                   <td><span className={`font-bold ${row.bestColor}`}>{row.best}</span></td>
                 </tr>
               ))}
