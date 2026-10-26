@@ -270,7 +270,7 @@ export default function GanView() {
             className="btn-primary py-2.5 px-5 bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-400 hover:to-teal-400 text-slate-950 font-bold shadow-lg shadow-emerald-500/20 flex items-center gap-2 text-sm"
           >
             <RefreshCw className={`w-4 h-4 ${isGenerating ? 'animate-spin' : ''}`} />
-            {isGenerating ? 'Synthesizing...' : 'Synthesize Scene'}
+            {isGenerating ? 'Rotating Feed...' : 'Next Scene in Pool'}
           </button>
         </motion.div>
       </header>
@@ -379,11 +379,18 @@ export default function GanView() {
           {/* Controls Column (4 cols) */}
           <div className="lg:col-span-4 space-y-5">
             <div>
-              <div className="flex items-center gap-2 mb-2">
-                <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
-                <span className="text-xs font-mono uppercase tracking-wider text-slate-400">
-                  {currentModelMeta.tagline}
-                </span>
+              <div className="flex items-center justify-between mb-2">
+                <div className="flex items-center gap-2">
+                  <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
+                  <span className="text-xs font-mono uppercase tracking-wider text-slate-400">
+                    {currentModelMeta.tagline}
+                  </span>
+                </div>
+                {generatedData?.scene_index && (
+                  <span className="text-[10px] font-mono px-2 py-0.5 rounded-full bg-cyan-500/15 text-cyan-300 border border-cyan-500/30">
+                    Scene #{generatedData.scene_index} of {generatedData.pool_total}
+                  </span>
+                )}
               </div>
               <h3 className="text-2xl font-black text-white">{currentModelMeta.name}</h3>
               <p className="text-slate-400 text-xs mt-2 leading-relaxed">
@@ -424,9 +431,9 @@ export default function GanView() {
                 className="btn-primary w-full py-3 bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-bold flex items-center justify-center gap-2 shadow-lg shadow-emerald-500/20 text-sm"
               >
                 {isGenerating ? (
-                  <>Synthesizing Manifold <RefreshCw className="w-4 h-4 animate-spin" /></>
+                  <>Rotating Scene Feed <RefreshCw className="w-4 h-4 animate-spin" /></>
                 ) : (
-                  <>Synthesize Novel Scene <Zap className="w-4 h-4" /></>
+                  <>Next Scene in Pool ({generatedData ? `${generatedData.scene_index || 1}/${generatedData.pool_total || 30}` : 'Loop Feed'}) <Zap className="w-4 h-4" /></>
                 )}
               </button>
 
