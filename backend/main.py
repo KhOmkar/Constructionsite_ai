@@ -163,42 +163,62 @@ async def vae_generate_conditional(
 async def gan_generate(
     model_type: str = Form("dcgan"),
     class_idx: int = Form(0),
-    seed: Optional[int] = Form(None)
+    seed: Optional[int] = Form(None),
+    noise_level: Optional[float] = Form(0.55),
+    sample_image: Optional[str] = Form(None)
 ):
     """
     Generate synthetic construction site imagery using 1 of 3 GAN models:
     - 'dcgan': Deep Convolutional GAN (Unconditional)
     - 'cgan': Conditional Safety GAN (Class-Conditioned Hazard Generation)
     - 'wgan': Wasserstein GAN with Gradient Penalty (Earth Mover's Distance)
+    Applies Gaussian prior noise to real construction scene and showcases adversarial denoising.
     """
-    result = inference_manager.generate_gan(model_type=model_type, class_idx=class_idx, seed=seed)
+    result = inference_manager.generate_gan(
+        model_type=model_type,
+        class_idx=class_idx,
+        seed=seed,
+        noise_level=noise_level,
+        sample_image=sample_image
+    )
     return JSONResponse(content=result)
 
 
 @app.post("/api/gan/interpolate")
 async def gan_interpolate(
     model_type: str = Form("dcgan"),
-    steps: int = Form(7),
-    class_idx: int = Form(0)
+    steps: int = Form(9),
+    class_idx: int = Form(0),
+    sample_image: Optional[str] = Form(None)
 ):
     """
-    Geodesic Latent Space Walk (SLERP Interpolation) between two points in latent space.
-    Produces smooth, continuous scene morphing animation.
+    Denoising Latent Trajectory (SLERP Walk):
+    Sweeps from prior noise perturbation (t=0.0) to fully denoised construction scene (t=1.0).
     """
-    result = inference_manager.interpolate_gan(model_type=model_type, steps=steps, class_idx=class_idx)
+    result = inference_manager.interpolate_gan(
+        model_type=model_type,
+        steps=steps,
+        class_idx=class_idx,
+        sample_image=sample_image
+    )
     return JSONResponse(content=result)
 
 
 @app.post("/api/gan/audit")
 async def gan_audit_with_vit(
     model_type: str = Form("cgan"),
-    class_idx: int = Form(3)
+    class_idx: int = Form(3),
+    sample_image: Optional[str] = Form(None)
 ):
     """
-    Closed-Loop Validation: Evaluates a GAN-generated synthetic scene
+    Closed-Loop Validation: Evaluates a GAN-generated / denoised scene
     using the Vision Transformer & Object Detector hazard intelligence engine.
     """
-    result = inference_manager.audit_gan_transformer(model_type=model_type, class_idx=class_idx)
+    result = inference_manager.audit_gan_transformer(
+        model_type=model_type,
+        class_idx=class_idx,
+        sample_image=sample_image
+    )
     return JSONResponse(content=result)
 
 
