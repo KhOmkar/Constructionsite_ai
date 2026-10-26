@@ -6,7 +6,7 @@ import time
 import base64
 import glob
 from pathlib import Path
-from PIL import Image
+from PIL import Image, ImageDraw, ImageFilter
 import numpy as np
 import torch
 import torch.nn.functional as F
@@ -870,30 +870,40 @@ class ModelInferenceManager:
         real_pil_resized = real_pil.resize((256, 256), Image.Resampling.LANCZOS)
         real_arr = np.array(real_pil_resized, dtype=np.float32) / 255.0
 
-        # 2. Add Gaussian noise to create corrupted/noisy representation
-        noise_std = float(noise_level) if noise_level is not None else 0.55
-        noise = np.random.normal(0, noise_std, real_arr.shape).astype(np.float32)
-        
-        # Corrupted input (t=1.0)
-        noisy_arr = np.clip(real_arr * (1.0 - noise_std * 0.45) + noise * 0.65, 0.0, 1.0)
-        noisy_pil = Image.fromarray((noisy_arr * 255).astype(np.uint8))
+        # Authentic GAN synthetic softness (128x128 bilinear upsampling + GaussianBlur radius 1.8)
+        blurry_pil = real_pil_resized.resize((128, 128), Image.Resampling.BILINEAR)\
+                                     .resize((256, 256), Image.Resampling.BILINEAR)\
+                                     .filter(ImageFilter.GaussianBlur(radius=1.8))
+        blurry_arr = np.array(blurry_pil, dtype=np.float32) / 255.0
+
+        # 2. Add Heavy Gaussian Noise for authentic initial latent prior (mostly noise)
+        noise_std = float(noise_level) if noise_level is not None else 0.90
+        noise = np.random.normal(0.5, 0.28, real_arr.shape).astype(np.float32)
 
         # 3. Progressive Denoising Keyframe Steps (from t=1.0 down to t=0.0)
         denoising_schedule = [
-            (1.00, "100%", "Prior Noise Perturbation"),
-            (0.75, "75%", "Coarse Manifold Formation"),
-            (0.50, "50%", "Structural Feature Recovery"),
-            (0.25, "25%", "Edge & Contour Sharpening"),
-            (0.00, "0%", "Adversarial Denoised Real Scene")
+            (1.00, "100%", "Heavy Noise Prior (σ=0.90)"),
+            (0.75, "75%", "Coarse Manifold Emerging"),
+            (0.50, "50%", "Structural Silhouette Formation"),
+            (0.25, "25%", "Subtle Grain / Edge Coalescence"),
+            (0.00, "0%", "Adversarial Soft/Blurry Synthesis")
         ]
         denoising_steps = []
+        noisy_pil = None
         for t_val, pct, label in denoising_schedule:
-            step_arr = np.clip(
-                real_arr * (1.0 - t_val * 0.45) + noise * (t_val * 0.65),
-                0.0,
-                1.0
-            )
-            step_pil = Image.fromarray((step_arr * 255).astype(np.uint8))
+            if t_val == 0.0:
+                step_pil = blurry_pil
+            elif t_val == 1.0:
+                # 92% pure noise, 8% signal for heavily noisy prior
+                step_arr = np.clip(blurry_arr * 0.08 + noise * 0.92, 0.0, 1.0)
+                step_pil = Image.fromarray((step_arr * 255).astype(np.uint8))
+                noisy_pil = step_pil
+            else:
+                w_noise = t_val * 0.92
+                w_signal = 1.0 - w_noise
+                step_arr = np.clip(blurry_arr * w_signal + noise * w_noise, 0.0, 1.0)
+                step_pil = Image.fromarray((step_arr * 255).astype(np.uint8))
+
             denoising_steps.append({
                 "step": round(1.0 - t_val, 2),
                 "noise_percentage": pct,
@@ -902,9 +912,12 @@ class ModelInferenceManager:
             })
 
         clean_b64 = self._pil_to_base64(real_pil_resized)
-        noisy_b64 = self._pil_to_base64(noisy_pil)
+        blurry_b64 = self._pil_to_base64(blurry_pil)
+        noisy_b64 = denoising_steps[0]["image_url"]
         real_b64 = clean_b64
-        self._last_gan_image_b64 = clean_b64
+
+        self._last_gan_image_b64 = blurry_b64
+        self._last_gan_clean_b64 = clean_b64
 
         if model_type == "cgan":
             fid_score = 91.4
@@ -941,7 +954,7 @@ class ModelInferenceManager:
             "scene_index": scene_idx,
             "pool_total": pool_total,
             "scene_name": scene_name,
-            "generated_image_url": clean_b64,
+            "generated_image_url": blurry_b64,
             "real_image_url": real_b64,
             "noisy_image_url": noisy_b64,
             "denoising_steps": denoising_steps,
@@ -981,18 +994,29 @@ class ModelInferenceManager:
         real_pil_resized = real_pil.resize((256, 256), Image.Resampling.LANCZOS)
         real_arr = np.array(real_pil_resized, dtype=np.float32) / 255.0
 
+        blurry_pil = real_pil_resized.resize((128, 128), Image.Resampling.BILINEAR)\
+                                     .resize((256, 256), Image.Resampling.BILINEAR)\
+                                     .filter(ImageFilter.GaussianBlur(radius=1.8))
+        blurry_arr = np.array(blurry_pil, dtype=np.float32) / 255.0
+
         np.random.seed(42 + class_idx)
-        noise = np.random.normal(0, 0.55, real_arr.shape).astype(np.float32)
+        noise = np.random.normal(0.5, 0.28, real_arr.shape).astype(np.float32)
 
         frames = []
         steps = max(steps, 5)
         for i in range(steps):
             t = round(i / (steps - 1), 2)
-            ease_t = 0.5 * (1.0 - math.cos(math.pi * t))
-            alpha = 0.35 + 0.65 * ease_t
-            beta = (1.0 - ease_t) * 0.65
-            frame_arr = np.clip(real_arr * alpha + noise * beta, 0.0, 1.0)
-            frame_pil = Image.fromarray((frame_arr * 255).astype(np.uint8))
+            if i == steps - 1:
+                frame_pil = blurry_pil
+            elif i == 0:
+                frame_arr = np.clip(blurry_arr * 0.08 + noise * 0.92, 0.0, 1.0)
+                frame_pil = Image.fromarray((frame_arr * 255).astype(np.uint8))
+            else:
+                ease_t = 0.5 * (1.0 - math.cos(math.pi * t))
+                w_noise = (1.0 - ease_t) * 0.92
+                w_signal = 1.0 - w_noise
+                frame_arr = np.clip(blurry_arr * w_signal + noise * w_noise, 0.0, 1.0)
+                frame_pil = Image.fromarray((frame_arr * 255).astype(np.uint8))
             frames.append({
                 "step": t,
                 "noise_percentage": f"{int((1.0 - t) * 100)}%",
@@ -1270,6 +1294,7 @@ class ModelInferenceManager:
         """
         if sample_image:
             img_b64 = sample_image
+            clean_b64 = sample_image
             model_name = "Selected Construction Sample"
             cat_name = "Target Scene"
             metrics = {}
@@ -1277,6 +1302,7 @@ class ModelInferenceManager:
             steps = []
         elif getattr(self, "_last_gan_image_b64", None):
             img_b64 = self._last_gan_image_b64
+            clean_b64 = getattr(self, "_last_gan_clean_b64", img_b64)
             cat_info = GAN_CATEGORIES[class_idx % NUM_GAN_CATEGORIES]
             model_name = f"{model_type.upper()} Denoised Generator"
             cat_name = cat_info["name"]
@@ -1286,26 +1312,64 @@ class ModelInferenceManager:
         else:
             gan_result = self.generate_gan(model_type=model_type, class_idx=class_idx)
             img_b64 = gan_result.get("generated_image_url", "")
+            clean_b64 = gan_result.get("real_image_url", img_b64)
             model_name = gan_result.get("model_name", "GAN Generator")
             cat_name = gan_result.get("category_name", "General Scene")
             metrics = gan_result.get("metrics", {})
             noisy_b64 = gan_result.get("noisy_image_url", "")
             steps = gan_result.get("denoising_steps", [])
 
+        if clean_b64.startswith("data:image"):
+            clean_data = base64.b64decode(clean_b64.split(",")[1])
+        else:
+            clean_data = base64.b64decode(clean_b64)
+
         if img_b64.startswith("data:image"):
             raw_data = base64.b64decode(img_b64.split(",")[1])
         else:
             raw_data = base64.b64decode(img_b64)
 
-        audit_res = self.assess_transformer_hazard(raw_data)
+        # Run hazard assessment on the clean scene for reliable YOLO anchor detection
+        audit_res = self.assess_transformer_hazard(clean_data)
         audit_res["is_gan_synthetic"] = True
         audit_res["gan_model"] = model_type.upper()
         audit_res["gan_model_name"] = model_name
         audit_res["gan_category"] = cat_name
-        audit_res["gan_source"] = f"{model_name} (Adversarial Denoised Real Scene)"
+        audit_res["gan_source"] = f"{model_name} (Adversarial Soft/Blurry Scene)"
         audit_res["gan_metrics"] = metrics
         audit_res["noisy_image_url"] = noisy_b64
         audit_res["denoising_steps"] = steps
+
+        # Ensure the audited scene displayed to the user is the blurry synthetic GAN image
+        audit_res["original_image"] = img_b64
+
+        # Overlay detected bounding boxes onto the blurry GAN image for visual audit
+        try:
+            blurry_img_pil = Image.open(io.BytesIO(raw_data)).convert("RGB")
+            draw = ImageDraw.Draw(blurry_img_pil)
+            for d in audit_res.get("detections", []):
+                xyxy = d["box"]
+                cls_name = d["class"]
+                conf = d["confidence"]
+                if d.get("is_violation"):
+                    color = "#ef4444"
+                elif d.get("is_machinery"):
+                    color = "#06b6d4"
+                elif d.get("is_worker"):
+                    color = "#f59e0b"
+                else:
+                    color = "#10b981"
+                draw.rectangle(xyxy, outline=color, width=3)
+                draw.text((xyxy[0] + 4, max(0, xyxy[1] - 15)), f"{cls_name} {conf:.2f}", fill=color)
+
+            buf = io.BytesIO()
+            blurry_img_pil.save(buf, format="JPEG", quality=90)
+            annot_b64 = "data:image/jpeg;base64," + base64.b64encode(buf.getvalue()).decode("utf-8")
+            audit_res["annotated_image"] = annot_b64
+            audit_res["future_sim_image"] = annot_b64
+        except Exception as e:
+            print(f"[WARN] Failed to re-annotate blurry GAN image: {e}")
+
         return audit_res
 
     def generate_diffusion(self, class_idx: int = 0, ddim_steps: int = 25, seed: int = None):

@@ -459,10 +459,10 @@ export default function GanView() {
               <div className="flex flex-col">
                 <div className="flex items-center justify-between mb-2">
                   <span className="text-[11px] font-bold text-rose-400 uppercase tracking-wider flex items-center gap-1.5">
-                    <ShieldAlert className="w-3.5 h-3.5 text-rose-400" /> 1. Prior Noise
+                    <ShieldAlert className="w-3.5 h-3.5 text-rose-400" /> 1. Heavy Noise Prior
                   </span>
                   <span className="text-[9px] font-mono text-rose-300 bg-rose-500/15 px-2 py-0.5 rounded border border-rose-500/30">
-                    x_noisy = x + ε
+                    Noise σ=0.90
                   </span>
                 </div>
                 <div className="aspect-square w-full rounded-2xl border-2 border-rose-500/40 bg-slate-950/80 overflow-hidden shadow-2xl relative flex items-center justify-center group">
@@ -482,7 +482,7 @@ export default function GanView() {
                     </div>
                   )}
                   <div className="absolute bottom-2 left-2 px-2 py-0.5 rounded bg-black/80 backdrop-blur-md text-[10px] font-mono text-rose-300 border border-rose-500/30">
-                    Gaussian Noise σ=0.55
+                    Heavy Noise Prior σ=0.90
                   </div>
                 </div>
               </div>
@@ -494,7 +494,7 @@ export default function GanView() {
                     <Zap className="w-3.5 h-3.5" /> 2. Denoised G(z)
                   </span>
                   <span className="text-[9px] font-mono text-emerald-300 bg-emerald-500/15 px-2 py-0.5 rounded border border-emerald-500/30">
-                    {activeDenoiseStep !== null ? `Step ${activeDenoiseStep + 1}` : 'Restored'}
+                    {activeDenoiseStep !== null ? `Step ${activeDenoiseStep + 1}` : 'Soft/Blurry Synthesis'}
                   </span>
                 </div>
                 <div className="aspect-square w-full rounded-2xl border-2 border-emerald-500/50 bg-slate-950/80 overflow-hidden shadow-2xl relative flex items-center justify-center group ring-2 ring-emerald-500/20">
@@ -516,7 +516,7 @@ export default function GanView() {
                   <div className="absolute bottom-2 left-2 px-2 py-0.5 rounded bg-black/80 backdrop-blur-md text-[10px] font-mono text-emerald-300 border border-emerald-500/30">
                     {activeDenoiseStep !== null && generatedData.denoising_steps?.[activeDenoiseStep]
                       ? generatedData.denoising_steps[activeDenoiseStep].label
-                      : 'Adversarial Denoised'}
+                      : 'Adversarial Soft/Blurry (128×128 G(z))'}
                   </div>
                 </div>
               </div>
@@ -528,7 +528,7 @@ export default function GanView() {
                     <Eye className="w-3.5 h-3.5" /> 3. Real Benchmark
                   </span>
                   <span className="text-[9px] font-mono text-cyan-300 bg-cyan-500/15 px-2 py-0.5 rounded border border-cyan-500/30">
-                    Ground Truth
+                    Ground Truth (100% Sharp)
                   </span>
                 </div>
                 <div className="aspect-square w-full rounded-2xl border-2 border-cyan-500/40 bg-slate-950/80 overflow-hidden shadow-2xl relative flex items-center justify-center group">
@@ -545,7 +545,7 @@ export default function GanView() {
                     </div>
                   )}
                   <div className="absolute bottom-2 left-2 px-2 py-0.5 rounded bg-black/80 backdrop-blur-md text-[10px] font-mono text-cyan-300 border border-cyan-500/30">
-                    PSNR: 32.4 dB • SSIM: 0.941
+                    Benchmark • 100% Sharp Real Image
                   </div>
                 </div>
               </div>
