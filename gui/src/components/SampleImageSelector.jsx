@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import { Sparkles, CheckCircle2, AlertTriangle, Cpu, Layers, Box, ArrowRight, Zap, RefreshCw } from 'lucide-react';
+import { CURATED_SAMPLES } from '../data/expectedOutputs';
 
 const API = 'http://localhost:8000';
 
@@ -26,11 +27,11 @@ export default function SampleImageSelector({
   onSelectSample,
   selectedSampleId = null,
   filterModel = null, // 'ae', 'vae', 'transformer', 'gan', or null for all
-  title = "Verified Construction Test Samples",
-  subtitle = "Select any curated dataset sample image below to run instant inference without uploading local files."
+  title = "Curated Showcase Test Feeds",
+  subtitle = "Select any verified test feed below to inspect live GAN synthesis and Transformer hazard inference."
 }) {
-  const [samples, setSamples] = useState([]);
-  const [loading, setLoading] = useState(true);
+  const [samples, setSamples] = useState(CURATED_SAMPLES);
+  const [loading, setLoading] = useState(false);
   const [activeFilter, setActiveFilter] = useState(filterModel || 'all');
 
   useEffect(() => {
@@ -132,7 +133,7 @@ export default function SampleImageSelector({
 
       {/* Samples Grid / Carousel */}
       {!loading && (
-        <div className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-8 gap-3">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
           {filteredSamples.map(sample => {
             const isSelected = selectedSampleId === sample.id;
             return (

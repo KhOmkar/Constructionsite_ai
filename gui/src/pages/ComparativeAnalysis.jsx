@@ -140,6 +140,28 @@ const modelComparison = [
     ],
     rating: { quality: 96, stability: 92, generation: 70, speed: 84 },
   },
+  {
+    name: 'Hazard Transformer (ViT)',
+    color: 'cyan',
+    icon: '🔮',
+    strengths: [
+      '120 Epochs trained with Cosine Annealing on 2,801 real images (CS-10k & Roboflow)',
+      'Multi-task prediction: 10 OSHA safety classes (F1: 0.846) + Continuous 2D Hazard Map',
+      'Global 8-head self-attention rollout captures equipment blindspots and fall edges',
+      'Fast single-frame GPU inference latency (~14.1 ms on RTX 3050 Laptop GPU)',
+    ],
+    weaknesses: [
+      'Requires GPU acceleration for real-time 8-head attention matrix operations',
+      'Quadratic O(N²) attention complexity relative to spatial token count (64 tokens)',
+      'Needs bounding-box or segmentation supervision to ground spatial hazard heads',
+    ],
+    useCases: [
+      'OSHA safety violation detection (NO-Hardhat, Trench, Fall protection)',
+      'Real-time equipment perimeter and worker blindspot thermal alerting',
+      'Self-attention interpretability for safety auditor review',
+    ],
+    rating: { quality: 92, stability: 94, generation: 88, speed: 85 },
+  },
 ];
 
 const RatingBar = ({ label, value, color }) => (

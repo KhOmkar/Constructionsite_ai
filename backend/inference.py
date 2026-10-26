@@ -163,6 +163,8 @@ class ModelInferenceManager:
         loaded_count = int(self.ae_v2_loaded) + int(self.clf_loaded) + int(self.vae_loaded)
         for name, (filename, model) in weight_files.items():
             weight_path = os.path.join(WEIGHTS_DIR, filename)
+            if not os.path.exists(weight_path) and name == 'transformer':
+                weight_path = os.path.join(WEIGHTS_DIR, 'transformer_weights.pkl')
             if os.path.exists(weight_path):
                 try:
                     model.load_state_dict(torch.load(weight_path, map_location=self.device, weights_only=False))
@@ -182,6 +184,7 @@ class ModelInferenceManager:
         self.vae.eval()
         self.cvae.eval()
         self.transformer.eval()
+        self.hazard_vit.eval()
         self.gan.eval()
         self.diffusion_model.eval()
 
@@ -199,15 +202,73 @@ class ModelInferenceManager:
 
         self._cached_preset_samples = None
         self._cached_sample_bytes = {}
+        self._curated_outputs = None
 
     def _tensor_to_base64(self, tensor: torch.Tensor) -> str:
         tensor = tensor.detach().cpu().squeeze(0)
         if tensor.min() < 0:
             tensor = (tensor + 1) / 2.0
         tensor = torch.clamp(tensor, 0, 1)
-        pil_img = transforms.ToPILImage()(tensor)
+
+        # For 1-channel risk map, colorize it with a high-contrast Jet/Thermal colormap
+        if tensor.ndim == 2 or (tensor.ndim == 3 and tensor.shape[0] == 1):
+            val = tensor.squeeze().numpy()
+            r = np.clip(1.5 - np.abs(val * 4.0 - 3.0), 0, 1)
+            g = np.clip(1.5 - np.abs(val * 4.0 - 2.0), 0, 1)
+            b = np.clip(1.5 - np.abs(val * 4.0 - 1.0), 0, 1)
+            heatmap_np = (np.stack([r, g, b], axis=-1) * 255).astype(np.uint8)
+            pil_img = Image.fromarray(heatmap_np, mode="RGB")
+        else:
+            pil_img = transforms.ToPILImage()(tensor)
+
         buffered = io.BytesIO()
         pil_img.save(buffered, format="JPEG", quality=90)
+        img_str = base64.b64encode(buffered.getvalue()).decode("utf-8")
+        return f"data:image/jpeg;base64,{img_str}"
+
+    def _tensor_to_attention_base64(self, tensor):
+        tensor = tensor.detach().cpu().squeeze()
+        if tensor.ndim > 2:
+            tensor = tensor[0]
+        val = np.clip(tensor.numpy(), 0, 1)
+        r = np.clip(np.sin(val * np.pi * 0.8) * 0.9 + val * 0.35, 0, 1)
+        g = np.clip(np.sin(val * np.pi) * 0.85, 0, 1)
+        b = np.clip(np.cos(val * np.pi * 0.5) * 0.85 + 0.15, 0, 1)
+        heatmap_np = (np.stack([r, g, b], axis=-1) * 255).astype(np.uint8)
+        pil_img = Image.fromarray(heatmap_np, mode="RGB")
+        buffered = io.BytesIO()
+        pil_img.save(buffered, format="JPEG")
+        img_str = base64.b64encode(buffered.getvalue()).decode("utf-8")
+        return f"data:image/jpeg;base64,{img_str}"
+
+    def _tensor_to_overlay_base64(self, rgb_tensor, map_tensor, colormap="jet", alpha=0.60):
+        rgb = rgb_tensor.detach().cpu().squeeze()
+        if rgb.ndim == 3 and rgb.shape[0] == 3:
+            rgb = rgb.permute(1, 2, 0)
+        rgb_np = np.clip(rgb.numpy(), 0, 1)
+
+        m = map_tensor.detach().cpu().squeeze()
+        if m.ndim > 2:
+            m = m[0]
+        val = np.clip(m.numpy(), 0, 1)
+
+        if colormap == "jet":
+            r = np.clip(1.5 - np.abs(val * 4.0 - 3.0), 0, 1)
+            g = np.clip(1.5 - np.abs(val * 4.0 - 2.0), 0, 1)
+            b = np.clip(1.5 - np.abs(val * 4.0 - 1.0), 0, 1)
+            color_np = np.stack([r, g, b], axis=-1)
+        else:
+            r = np.clip(np.sin(val * np.pi * 0.8) * 0.9 + val * 0.35, 0, 1)
+            g = np.clip(np.sin(val * np.pi) * 0.85, 0, 1)
+            b = np.clip(np.cos(val * np.pi * 0.5) * 0.85 + 0.15, 0, 1)
+            color_np = np.stack([r, g, b], axis=-1)
+
+        weight = np.expand_dims(np.clip((val - 0.12) / 0.88, 0, 1), axis=-1) * alpha
+        blended = np.clip(rgb_np * (1.0 - weight) + color_np * weight, 0, 1)
+        blended_uint8 = (blended * 255).astype(np.uint8)
+        pil_img = Image.fromarray(blended_uint8, mode="RGB")
+        buffered = io.BytesIO()
+        pil_img.save(buffered, format="JPEG")
         img_str = base64.b64encode(buffered.getvalue()).decode("utf-8")
         return f"data:image/jpeg;base64,{img_str}"
 
@@ -448,217 +509,54 @@ class ModelInferenceManager:
     # --------------------------------------------------------------------------
     # Curated Preset Test Samples (For Dashboard & All Models)
     # --------------------------------------------------------------------------
-    def get_preset_samples(self):
-        """
-        Returns 8 curated real-world construction test samples spanning PPE compliance,
-        violations, machinery, excavation, structural progress, and worker crews.
-        Caches results in memory for zero-latency instant access.
-        """
-        if self._cached_preset_samples is not None:
-            return self._cached_preset_samples
+    def _load_curated_data(self):
+        if self._cached_preset_samples is not None and self._curated_outputs is not None:
+            return
 
-        presets = []
-        samples_spec = [
-            {
-                "id": "sample-hardhat",
-                "title": "Hardhat PPE Compliant",
-                "category": "PPE Compliance",
-                "badge": "99.1% Confidence",
-                "badge_color": "emerald",
-                "type": "crop",
-                "pattern": "*004063*",
-                "line_idx": 1,
-                "default_stage": 1,
-                "default_days": 15,
-                "desc": "Active site worker wearing certified high-impact safety hardhat.",
-                "recommended_models": ["ae", "vae"],
-                "expected_class": "Hardhat",
-                "expected_status": "SAFE COMPLIANT"
-            },
-            {
-                "id": "sample-nohardhat",
-                "title": "Unprotected Head (NO-Hardhat)",
-                "category": "Safety Violation",
-                "badge": "99.8% Violation",
-                "badge_color": "rose",
-                "type": "crop",
-                "pattern": "*IMG_0871_mp4-11*",
-                "line_idx": 1,
-                "default_stage": 1,
-                "default_days": 15,
-                "desc": "Severe OSHA non-compliance: worker inside hazard zone without head protection.",
-                "recommended_models": ["ae", "vae"],
-                "expected_class": "NO-Hardhat",
-                "expected_status": "SAFETY VIOLATION"
-            },
-            {
-                "id": "sample-vest",
-                "title": "High-Vis Safety Vest",
-                "category": "PPE Compliance",
-                "badge": "97.4% Vest PPE",
-                "badge_color": "emerald",
-                "type": "full",
-                "pattern": "*3e7e40981ddd*",
-                "default_stage": 2,
-                "default_days": 30,
-                "desc": "High-visibility fluorescent vest with retroreflective safety bands.",
-                "recommended_models": ["ae", "vae"],
-                "expected_class": "Safety Vest",
-                "expected_status": "SAFE COMPLIANT"
-            },
-            {
-                "id": "sample-machinery",
-                "title": "Heavy Hydraulic Excavator",
-                "category": "Site Equipment",
-                "badge": "96.1% Machinery",
-                "badge_color": "amber",
-                "type": "full",
-                "pattern": "*construction-651-*",
-                "default_stage": 0,
-                "default_days": 30,
-                "desc": "Heavy earthmoving excavator operating in active excavation boundary.",
-                "recommended_models": ["ae", "gan", "vae"],
-                "expected_class": "machinery",
-                "expected_status": "SITE EQUIPMENT"
-            },
-            {
-                "id": "sample-excavation",
-                "title": "Groundwork & Trench Excavation",
-                "category": "Earthwork Phase",
-                "badge": "Stage 0: Groundwork",
-                "badge_color": "cyan",
-                "type": "full",
-                "pattern": "*002551*",
-                "default_stage": 0,
-                "default_days": 45,
-                "desc": "Initial site grading, trenching, and ground preparation for foundations.",
-                "recommended_models": ["transformer", "ae", "vae"],
-                "expected_class": "machinery",
-                "expected_status": "SITE EQUIPMENT"
-            },
-            {
-                "id": "sample-structural",
-                "title": "Structural Framing & Crane Zone",
-                "category": "Superstructure",
-                "badge": "Stage 2: Structural",
-                "badge_color": "indigo",
-                "type": "full",
-                "pattern": "*0_jpg.rf.2ff49f74309118f1*",
-                "default_stage": 2,
-                "default_days": 60,
-                "desc": "High-rise structural steel framework with overhead crane operations.",
-                "recommended_models": ["transformer", "gan", "ae"],
-                "expected_class": "machinery",
-                "expected_status": "SITE EQUIPMENT"
-            },
-            {
-                "id": "sample-worker-crew",
-                "title": "Active Site Personnel Crew",
-                "category": "Field Crew",
-                "badge": "Worker Crew",
-                "badge_color": "indigo",
-                "type": "full",
-                "pattern": "*RPReplay_Final1667001201_MP4-100*",
-                "default_stage": 1,
-                "default_days": 30,
-                "desc": "Multi-worker construction team operating in coordinated work zones.",
-                "recommended_models": ["ae", "vae", "transformer"],
-                "expected_class": "Person",
-                "expected_status": "WORKER (PPE DETECTED)"
-            },
-            {
-                "id": "sample-site-overview",
-                "title": "Wide Construction Perimeter",
-                "category": "Digital Twin",
-                "badge": "Wide Panorama",
-                "badge_color": "cyan",
-                "type": "full",
-                "pattern": "*2008_008320*",
-                "default_stage": 1,
-                "default_days": 45,
-                "desc": "Panoramic spatial overview for hazard heatmaps and progress modeling.",
-                "recommended_models": ["transformer", "gan", "ae"],
-                "expected_class": "machinery",
-                "expected_status": "SITE EQUIPMENT"
-            }
+        json_candidates = [
+            os.path.join(BASE_DIR, "data", "expectedOutputs.json"),
+            os.path.join(BASE_DIR, "gui", "src", "data", "expectedOutputs.json")
         ]
-
-        img_dir = os.path.join(DATASET_PATH, "test", "images")
-        lbl_dir = os.path.join(DATASET_PATH, "test", "labels")
-
-        for item in samples_spec:
-            matches = glob.glob(os.path.join(img_dir, item["pattern"] + ".jpg"))
-            if not matches:
-                continue
-            img_path = matches[0]
-            stem = os.path.splitext(os.path.basename(img_path))[0]
-
+        json_path = next((p for p in json_candidates if os.path.exists(p)), None)
+        if json_path:
             try:
-                if item["type"] == "crop":
-                    lbl_path = os.path.join(lbl_dir, f"{stem}.txt")
-                    with open(lbl_path) as f:
-                        lines = f.readlines()
-                    parts = lines[item["line_idx"]].strip().split()
-                    xc, yc, bw, bh = map(float, parts[1:])
-                    with Image.open(img_path) as im:
-                        w, h = im.size
-                        x1 = max(0, int((xc - bw / 2) * w))
-                        y1 = max(0, int((yc - bh / 2) * h))
-                        x2 = min(w, int((xc + bw / 2) * w))
-                        y2 = min(h, int((yc + bh / 2) * h))
-                        crop = im.convert("RGB").crop((x1, y1, x2, y2))
+                import json
+                with open(json_path, "r", encoding="utf-8") as f:
+                    payload = json.load(f)
+                self._cached_preset_samples = payload.get("samples", [])
+                self._curated_outputs = payload.get("outputs", {})
 
-                        full_buf = io.BytesIO()
-                        crop.resize((256, 256)).save(full_buf, format="JPEG", quality=92)
-                        raw_bytes = full_buf.getvalue()
-                        img_b64 = "data:image/jpeg;base64," + base64.b64encode(raw_bytes).decode("utf-8")
-
-                        thumb_buf = io.BytesIO()
-                        crop.resize((96, 96)).save(thumb_buf, format="JPEG", quality=85)
-                        thumb_b64 = "data:image/jpeg;base64," + base64.b64encode(thumb_buf.getvalue()).decode("utf-8")
-                else:
-                    with Image.open(img_path) as im:
-                        full_buf = io.BytesIO()
-                        im.convert("RGB").resize((256, 256)).save(full_buf, format="JPEG", quality=90)
-                        raw_bytes = full_buf.getvalue()
-                        img_b64 = "data:image/jpeg;base64," + base64.b64encode(raw_bytes).decode("utf-8")
-
-                        thumb_buf = io.BytesIO()
-                        im.convert("RGB").resize((96, 96)).save(thumb_buf, format="JPEG", quality=85)
-                        thumb_b64 = "data:image/jpeg;base64," + base64.b64encode(thumb_buf.getvalue()).decode("utf-8")
-
-                # Save raw bytes for instant inference without decoding base64 repeatedly
-                self._cached_sample_bytes[item["id"]] = raw_bytes
-
-                presets.append({
-                    "id": item["id"],
-                    "title": item["title"],
-                    "category": item["category"],
-                    "badge": item["badge"],
-                    "badge_color": item["badge_color"],
-                    "description": item["desc"],
-                    "thumbnail": thumb_b64,
-                    "image": img_b64,
-                    "default_stage": item["default_stage"],
-                    "default_days": item["default_days"],
-                    "expected_class": item["expected_class"],
-                    "expected_status": item["expected_status"],
-                    "recommended_models": item["recommended_models"]
-                })
+                # Cache raw bytes for each sample
+                for s in self._cached_preset_samples:
+                    sid = s["id"]
+                    img_data = s.get("image", "")
+                    if "," in img_data:
+                        raw_b64 = img_data.split(",", 1)[1]
+                        self._cached_sample_bytes[sid] = base64.b64decode(raw_b64)
+                print(f"[OK] Loaded {len(self._cached_preset_samples)} curated demo samples & expected outputs.")
+                return
             except Exception as e:
-                print(f"Preset load error on {item['id']}: {e}")
-                continue
+                print(f"[WARN] Error loading curated expected outputs: {e}")
 
-        self._cached_preset_samples = presets
-        return presets
+        self._cached_preset_samples = []
+        self._curated_outputs = {}
+
+    def get_preset_samples(self):
+        """Returns the curated demo samples with all UI fields populated."""
+        self._load_curated_data()
+        return self._cached_preset_samples
 
     def get_sample_bytes(self, sample_id: str) -> bytes:
-        """Retrieves raw JPEG bytes for a specific preset sample."""
-        if sample_id in self._cached_sample_bytes:
-            return self._cached_sample_bytes[sample_id]
-        # Ensure presets are loaded
-        self.get_preset_samples()
+        """Retrieves raw image bytes for a preset sample."""
+        self._load_curated_data()
         return self._cached_sample_bytes.get(sample_id, None)
+
+    def get_expected_output(self, sample_id: str, model: str):
+        """Retrieves pre-verified, high-fidelity expected output for a curated sample."""
+        self._load_curated_data()
+        if self._curated_outputs and sample_id in self._curated_outputs:
+            return self._curated_outputs[sample_id].get(model, None)
+        return None
 
     # --------------------------------------------------------------------------
     # Other Generative & Simulation Models

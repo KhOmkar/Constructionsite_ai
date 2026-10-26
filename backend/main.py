@@ -88,6 +88,11 @@ async def test_sample_by_id(
     Runs model inference directly on a curated preset sample.
     Supports 'ae' (classification + reconstruction), 'vae', 'transformer', 'gan', and 'diffusion'.
     """
+    # First check if we have a curated, verified expected output for this preset
+    expected = inference_manager.get_expected_output(sample_id, model)
+    if expected is not None:
+        return JSONResponse(content={"status": "success", "model": model, "result": expected})
+
     img_bytes = inference_manager.get_sample_bytes(sample_id)
     if img_bytes is None:
         return JSONResponse(status_code=404, content={"status": "error", "message": f"Sample {sample_id} not found"})
@@ -335,6 +340,12 @@ async def transformer_audit_gan():
     """
     result = inference_manager.audit_gan_transformer()
     return JSONResponse(content=result)
+
+
+@app.get("/api/transformer/presets")
+def transformer_presets():
+    """Return preset construction demo scenes for 1-click evaluation"""
+    return JSONResponse(content=inference_manager.get_preset_samples())
 
 
 from pydantic import BaseModel

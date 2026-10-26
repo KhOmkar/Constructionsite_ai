@@ -48,6 +48,8 @@ venv.bak/
 # Dataset directories (Raw Images & External Datasets)
 ConstructionSiteSafetyImageDatasetRoboflow/
 data/raw/
+data/2_data/
+data/css-data/
 data/splits/
 data/2_data/
 data/css-data/

@@ -142,6 +142,34 @@ export default function TransformerView() {
     }
   };
 
+  const handleSelectPreset = (p) => {
+    setActivePreset(p.id);
+    setPreviewUrl(p.image_url);
+    setSelectedRule(p.stage_idx.toString());
+    const blob = dataURLtoBlob(p.image_url);
+    const file = new File([blob], `${p.id}.jpg`, { type: 'image/jpeg' });
+    setSelectedFile(file);
+    triggerSimulation(file, p.stage_idx);
+  };
+
+  // Filter detected classes based on dynamic threshold
+  const activeClassList = classProbabilities.length > 0
+    ? classProbabilities.filter(c => c.probability >= detectionThreshold)
+    : detectedClasses.map(name => ({ class_name: name, probability: 85, is_detected: true }));
+
+  const getTagColor = (clsName) => {
+    if (clsName.startsWith('NO-') || clsName.includes('Hazard')) {
+      return 'bg-rose-50 text-rose-700 border-rose-300 ring-rose-500/20';
+    }
+    if (clsName === 'machinery' || clsName === 'vehicle' || clsName === 'Safety Cone') {
+      return 'bg-amber-50 text-amber-800 border-amber-300 ring-amber-500/20';
+    }
+    if (clsName === 'Person') {
+      return 'bg-blue-50 text-blue-700 border-blue-300 ring-blue-500/20';
+    }
+    return 'bg-emerald-50 text-emerald-800 border-emerald-300 ring-emerald-500/20';
+  };
+
   return (
     <motion.div
       variants={containerVariants}

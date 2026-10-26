@@ -1,0 +1,42 @@
+# MOCS (Moving Objects in Construction Sites) Dataset Configuration
+name: MOCS
+description: Large-scale benchmark dataset for moving construction objects and machinery danger zone modeling.
+num_classes: 13
+
+# 13-Class Taxonomy
+classes:
+  0: Worker
+  1: Static Vehicle
+  2: Dump Truck
+  3: Loader
+  4: Excavator
+  5: Concrete Mixer
+  6: Roller
+  7: Pump Truck
+  8: Tower Crane
+  9: Crane
+  10: Hook
+  11: Bulldozer
+  12: Material
+
+# OSHA / ISO 21873 Spatial Hazard Envelopes (Normalized Radius)
+hazard_radii:
+  Worker: 0.08
+  Static Vehicle: 0.12
+  Dump Truck: 0.22
+  Loader: 0.20
+  Excavator: 0.28
+  Concrete Mixer: 0.18
+  Roller: 0.22
+  Pump Truck: 0.25
+  Tower Crane: 0.40
+  Crane: 0.35
+  Hook: 0.25
+  Bulldozer: 0.22
+  Material: 0.10
+
+# Directory Paths
+paths:
+  root: data/mocs
+  images: data/mocs/images
+  annotations: data/mocs/annotations
