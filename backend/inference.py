@@ -101,6 +101,7 @@ class ModelInferenceManager:
         self.transformer = ConstructionHazardViT(
             img_size=128, patch_size=16, in_channels=3, num_classes=10, embed_dim=256, depth=4, num_heads=8
         ).to(self.device)
+        self.hazard_vit = self.transformer
 
         # 3 GAN Architectures: DCGAN, Conditional GAN (cGAN), WGAN-GP
         self.dcgan = Generator(latent_dim=100, out_channels=3, features=64).to(self.device)

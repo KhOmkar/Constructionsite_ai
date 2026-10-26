@@ -142,15 +142,6 @@ export default function TransformerView() {
     }
   };
 
-  const handleSelectPreset = (p) => {
-    setActivePreset(p.id);
-    setPreviewUrl(p.image_url);
-    setSelectedRule(p.stage_idx.toString());
-    const blob = dataURLtoBlob(p.image_url);
-    const file = new File([blob], `${p.id}.jpg`, { type: 'image/jpeg' });
-    setSelectedFile(file);
-    triggerSimulation(file, p.stage_idx);
-  };
 
   // Filter detected classes based on dynamic threshold
   const activeClassList = classProbabilities.length > 0
