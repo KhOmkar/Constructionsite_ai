@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { 
   Upload, Play, AlertTriangle, Loader2, Layers, Cpu, Hash, 
@@ -6,6 +6,7 @@ import {
   Sparkles, RefreshCw, AlertOctagon, HelpCircle, HardHat, FileText
 } from 'lucide-react';
 import axios from 'axios';
+import { CURATED_SAMPLES } from '../data/expectedOutputs';
 
 const API = 'http://localhost:8000';
 
@@ -19,6 +20,25 @@ const itemVariants = {
   show: { opacity: 1, y: 0, transition: { type: "spring", stiffness: 300, damping: 24 } }
 };
 
+// Convert base64 data URI directly to File object
+function dataURLtoFile(dataurl, filename) {
+  try {
+    if (!dataurl || !dataurl.includes(',')) return null;
+    const arr = dataurl.split(',');
+    const mime = arr[0].match(/:(.*?);/)[1];
+    const bstr = atob(arr[1]);
+    let n = bstr.length;
+    const u8arr = new Uint8Array(n);
+    while (n--) {
+      u8arr[n] = bstr.charCodeAt(n);
+    }
+    return new File([u8arr], filename, { type: mime });
+  } catch (err) {
+    console.error("Failed to convert dataURL to file:", err);
+    return null;
+  }
+}
+
 export default function TransformerView() {
   const [selectedFile, setSelectedFile] = useState(null);
   const [previewUrl, setPreviewUrl] = useState(null);
@@ -29,45 +49,52 @@ export default function TransformerView() {
   const [activeTab, setActiveTab] = useState('detections'); // 'detections' | 'attention' | 'risk_map'
   const [resultData, setResultData] = useState(null);
 
-  // 1-Click Evaluation Presets
+  // 1-Click Evaluation Presets linked to high-res curated showcase data
   const presets = [
     {
       id: 'rule4-blindspot',
       title: 'Rule 4: Excavator Blindspot',
-      desc: 'Worker positioned within heavy machinery swing radius',
+      desc: 'Worker positioned within heavy machinery swing radius and equipment blindspot',
       tag: 'Critical Struck-By Hazard',
       rule: 'OSHA 1926.600',
       color: 'rose',
-      image: '/data/css-data/test/images/004063_jpg.rf.1b7cdc4035bcb24ef69b8798b444053e.jpg'
+      image: CURATED_SAMPLES[0]?.image || ''
     },
     {
       id: 'rule2-ppe',
       title: 'Rule 2: PPE Non-Compliance',
-      desc: 'Ground crew missing required hardhat and safety vest',
+      desc: 'Ground crew missing mandatory ANSI hardhat and high-visibility vest',
       tag: 'PPE Violation',
       rule: 'OSHA 1926.100',
       color: 'amber',
-      image: '/data/css-data/test/images/002551_jpg.rf.ce4b9f934161faa72c80dc6898d37b2d.jpg'
-    },
-    {
-      id: 'rule3-trench',
-      title: 'Rule 3: Trench Excavation',
-      desc: 'Deep excavation with earthmoving machinery active',
-      tag: 'Excavation Safety',
-      rule: 'OSHA 1926.651',
-      color: 'cyan',
-      image: '/data/css-data/test/images/004763_jpg.rf.46484e6ca73caeaa9de45822cf1085a9.jpg'
+      image: CURATED_SAMPLES[1]?.image || ''
     },
     {
       id: 'rule1-heights',
       title: 'Rule 1: Fall Protection & Heights',
-      desc: 'Structural work with edge exposure & personnel monitoring',
+      desc: 'High-elevation structural steel framing with workers near unbarricaded edges',
       tag: 'Fall Protection',
       rule: 'OSHA 1926.501',
       color: 'purple',
-      image: '/data/css-data/test/images/000005_jpg.rf.96e9379ccae638140c4a90fc4b700a2b.jpg'
+      image: CURATED_SAMPLES[2]?.image || ''
+    },
+    {
+      id: 'rule-compliant',
+      title: 'Certified Safe Site Crew',
+      desc: 'Inspection crew equipped with certified safety gear outside machine envelopes',
+      tag: 'Safe & Compliant',
+      rule: 'Site Audit Standard',
+      color: 'emerald',
+      image: CURATED_SAMPLES[3]?.image || ''
     }
   ];
+
+  // Auto-run first preset on mount so ViT analytics are immediately visible
+  useEffect(() => {
+    if (presets[0]?.image) {
+      handleSelectPreset(presets[0]);
+    }
+  }, []);
 
   const handleFileChange = (e) => {
     const file = e.target.files[0];
@@ -104,6 +131,7 @@ export default function TransformerView() {
   };
 
   const handleSelectPreset = async (preset) => {
+    if (!preset || !preset.image) return;
     try {
       setIsSimulating(true);
       setPreviewUrl(preset.image);
@@ -112,14 +140,15 @@ export default function TransformerView() {
       setRiskMapUrl(null);
       setResultData(null);
 
-      const resp = await fetch(preset.image);
-      const blob = await resp.blob();
-      const file = new File([blob], `${preset.id}.jpg`, { type: 'image/jpeg' });
-      setSelectedFile(file);
-      await handleRunAssessment(file);
+      const file = dataURLtoFile(preset.image, `${preset.id}.jpg`);
+      if (file) {
+        setSelectedFile(file);
+        await handleRunAssessment(file);
+      } else {
+        setIsSimulating(false);
+      }
     } catch (err) {
       console.error('Error loading preset:', err);
-      // Fallback: send as form file
       setIsSimulating(false);
     }
   };
@@ -143,23 +172,6 @@ export default function TransformerView() {
   };
 
 
-  // Filter detected classes based on dynamic threshold
-  const activeClassList = classProbabilities.length > 0
-    ? classProbabilities.filter(c => c.probability >= detectionThreshold)
-    : detectedClasses.map(name => ({ class_name: name, probability: 85, is_detected: true }));
-
-  const getTagColor = (clsName) => {
-    if (clsName.startsWith('NO-') || clsName.includes('Hazard')) {
-      return 'bg-rose-50 text-rose-700 border-rose-300 ring-rose-500/20';
-    }
-    if (clsName === 'machinery' || clsName === 'vehicle' || clsName === 'Safety Cone') {
-      return 'bg-amber-50 text-amber-800 border-amber-300 ring-amber-500/20';
-    }
-    if (clsName === 'Person') {
-      return 'bg-blue-50 text-blue-700 border-blue-300 ring-blue-500/20';
-    }
-    return 'bg-emerald-50 text-emerald-800 border-emerald-300 ring-emerald-500/20';
-  };
 
   return (
     <motion.div
@@ -376,6 +388,16 @@ export default function TransformerView() {
                 >
                   8-Head ViT Attention
                 </button>
+                <button
+                  onClick={() => setActiveTab('risk_map')}
+                  className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all ${
+                    activeTab === 'risk_map' 
+                      ? 'bg-cyan-500 text-slate-950 shadow-md shadow-cyan-500/20' 
+                      : 'text-slate-400 hover:text-white'
+                  }`}
+                >
+                  Hazard Heatmap
+                </button>
               </div>
             </div>
 
@@ -397,14 +419,27 @@ export default function TransformerView() {
               ) : activeTab === 'attention' && attentionMapUrl ? (
                 <div className="relative w-full h-full">
                   <motion.img 
-                  initial={{ opacity: 0 }} 
-                  animate={{ opacity: 1 }} 
-                  src={attentionMapUrl} 
-                  alt="8-Head Attention Rollout" 
-                  className="w-full h-full object-contain" 
-                />
+                    initial={{ opacity: 0 }} 
+                    animate={{ opacity: 1 }} 
+                    src={attentionMapUrl} 
+                    alt="8-Head Attention Rollout" 
+                    className="w-full h-full object-contain" 
+                  />
                   <div className="absolute bottom-3 left-3 px-3 py-1.5 rounded-lg bg-slate-950/80 border border-white/10 text-[11px] font-mono text-cyan-300">
                     Plasma Colormap: Class Token → 64 Patch Tokens (Self-Attention Rollout)
+                  </div>
+                </div>
+              ) : activeTab === 'risk_map' && riskMapUrl ? (
+                <div className="relative w-full h-full">
+                  <motion.img 
+                    initial={{ opacity: 0 }} 
+                    animate={{ opacity: 1 }} 
+                    src={riskMapUrl} 
+                    alt="Hazard Saliency Heatmap" 
+                    className="w-full h-full object-contain" 
+                  />
+                  <div className="absolute bottom-3 left-3 px-3 py-1.5 rounded-lg bg-slate-950/80 border border-white/10 text-[11px] font-mono text-amber-300">
+                    Thermal Jet Colormap: High-Risk Machine Proximity &amp; Fall Zones
                   </div>
                 </div>
               ) : previewUrl ? (
@@ -417,16 +452,16 @@ export default function TransformerView() {
               )}
             </div>
 
-            {/* Dual-Pane Thumbnails Preview */}
+            {/* Tri-Pane Thumbnails Preview */}
             {resultData && (
-              <div className="grid grid-cols-2 gap-3 mt-4">
+              <div className="grid grid-cols-3 gap-3 mt-4">
                 <button
                   onClick={() => setActiveTab('detections')}
                   className={`p-2 rounded-xl bg-slate-900/60 border text-left transition-all ${
                     activeTab === 'detections' ? 'border-cyan-500 shadow-md shadow-cyan-500/10' : 'border-white/5'
                   }`}
                 >
-                  <span className="text-[10px] font-mono uppercase text-slate-400 block mb-1 font-semibold">1. Detected Objects &amp; PPE</span>
+                  <span className="text-[10px] font-mono uppercase text-slate-400 block mb-1 font-semibold truncate">1. Detected Objects</span>
                   <div className="aspect-video rounded-lg overflow-hidden bg-slate-950">
                     <img src={annotatedUrl} alt="Detected Objects" className="w-full h-full object-cover" />
                   </div>
@@ -438,9 +473,21 @@ export default function TransformerView() {
                     activeTab === 'attention' ? 'border-cyan-500 shadow-md shadow-cyan-500/10' : 'border-white/5'
                   }`}
                 >
-                  <span className="text-[10px] font-mono uppercase text-cyan-300 block mb-1 font-semibold">2. 8-Head ViT Attention</span>
+                  <span className="text-[10px] font-mono uppercase text-cyan-300 block mb-1 font-semibold truncate">2. 8-Head ViT</span>
                   <div className="aspect-video rounded-lg overflow-hidden bg-slate-950">
                     <img src={attentionMapUrl} alt="Attention Map" className="w-full h-full object-cover" />
+                  </div>
+                </button>
+
+                <button
+                  onClick={() => setActiveTab('risk_map')}
+                  className={`p-2 rounded-xl bg-slate-900/60 border text-left transition-all ${
+                    activeTab === 'risk_map' ? 'border-cyan-500 shadow-md shadow-cyan-500/10' : 'border-white/5'
+                  }`}
+                >
+                  <span className="text-[10px] font-mono uppercase text-amber-400 block mb-1 font-semibold truncate">3. Hazard Heatmap</span>
+                  <div className="aspect-video rounded-lg overflow-hidden bg-slate-950">
+                    <img src={riskMapUrl} alt="Hazard Heatmap" className="w-full h-full object-cover" />
                   </div>
                 </button>
               </div>
